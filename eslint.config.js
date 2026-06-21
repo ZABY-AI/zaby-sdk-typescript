@@ -8,7 +8,7 @@ export default tseslint.config(
     ignores: ["dist/**", "coverage/**"],
   },
   {
-    files: ["**/*.ts"],
+    files: ["**/*.{ts,tsx}"],
     rules: {
       "@typescript-eslint/no-explicit-any": "off",
     },

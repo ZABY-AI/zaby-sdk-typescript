@@ -150,6 +150,42 @@ Optional overrides:
 ZABY_API_ORIGIN=https://genapi.zaby.io npm run test:e2e
 ```
 
+## Terminal Agentic Chat
+
+Run a full terminal chat UI powered by the SDK:
+
+```sh
+npm run example:chat
+```
+
+The chat uses `http://localhost:9080` by default for local testing. Use one of these auth modes:
+
+```sh
+ZABY_RUNTIME_TOKEN=<disposable-runtime-token> npm run example:chat
+```
+
+or mint disposable runtime tokens from the server-side SDK:
+
+```sh
+ZABY_API_KEY=zaby_pk_... \
+ZABY_EXTERNAL_APP_ID=<external-app-id> \
+ZABY_AGENT_DEPLOYMENT_ID=<deployment-id> \
+npm run example:chat
+```
+
+Optional:
+
+```sh
+ZABY_API_ORIGIN=https://genapi.zaby.io npm run example:chat
+```
+
+Inside the TUI:
+
+- `/help` shows commands
+- `/clear` clears the transcript
+- `/exit` quits
+- `Esc` quits
+
 ## Development
 
 ```sh

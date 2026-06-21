@@ -55,7 +55,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "tsx scripts/live-smoke.ts",
-    "lint": "eslint . --ext .ts",
+    "example:chat": "tsx examples/terminal-agentic-chat.tsx",
+    "lint": "eslint . --ext .ts,.tsx",
     "prepack": "npm run build"
   },
   "engines": {
@@ -67,7 +68,11 @@
   "devDependencies": {
     "@eslint/js": "^9.18.0",
     "@types/node": "^26.0.0",
+    "@types/react": "^19.2.17",
     "eslint": "^9.18.0",
+    "ink": "^7.1.0",
+    "ink-text-input": "^6.0.0",
+    "react": "^19.2.7",
     "tsup": "^8.3.5",
     "tsx": "^4.19.2",
     "typescript": "^5.7.3",
