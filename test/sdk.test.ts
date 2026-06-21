@@ -56,6 +56,24 @@ describe("server SDK", () => {
     expect(transport.requests[0]?.json).toMatchObject({ slug: "support", name: "Support Agent" });
   });
 
+  it("can send a tenant bearer access token alongside the tenant API key", async () => {
+    const tokenProvider = vi.fn(async () => "tenant_access_token");
+    const transport = new MockTransport([
+      { method: "POST", path: "/api/v1/tenant/agents", json: { id: "agent_1" }, status: 201 },
+    ]);
+    const zaby = new Zaby({ apiKey: "zaby_pk_test", accessToken: tokenProvider, transport });
+
+    await zaby.agents.create({
+      slug: "support",
+      name: "Support Agent",
+      provider: "groq",
+    });
+
+    expect(tokenProvider).toHaveBeenCalledOnce();
+    expect(transport.requests[0]?.headers["x-zaby-api-key"]).toBe("zaby_pk_test");
+    expect(transport.requests[0]?.headers.authorization).toBe("Bearer tenant_access_token");
+  });
+
   it("mints disposable runtime tokens through the provisioning API key surface", async () => {
     const transport = new MockTransport([
       {
@@ -63,6 +81,11 @@ describe("server SDK", () => {
         path: "/api/v1/provisioning/managed-agents/external-apps/app_1/runtime-tokens",
         status: 201,
         json: { token: "runtime_token", tokenType: "Bearer", expiresAt: "2026-06-21T12:00:00.000Z" },
+      },
+      {
+        method: "POST",
+        path: "/api/v1/provisioning/managed-agents/runs/run_1/feedback",
+        json: { accepted: true },
       },
     ]);
     const zaby = new Zaby({ apiKey: "zaby_pk_test", transport });
@@ -77,11 +100,15 @@ describe("server SDK", () => {
 
     expect(token.token).toBe("runtime_token");
     expect(transport.requests[0]?.json).toMatchObject({ deploymentId: "dep_1", externalUserId: "user_1" });
+    await zaby.runtimeTokens.recordFeedback("run_1", { rating: 5, label: "helpful" });
+    expect(transport.requests[1]?.json).toMatchObject({ rating: 5, label: "helpful" });
   });
 
   it("routes KB, MCP, memory, intelligence, approval, and usage helpers to Agentic OS APIs", async () => {
     const transport = new MockTransport([
       { method: "POST", path: "/api/v1/tenant/knowledge-bases", status: 201, json: { id: "kb_1" } },
+      { method: "POST", path: "/api/v1/tenant/knowledge-library/documents/text", status: 201, json: { id: "doc_1" } },
+      { method: "GET", path: "/api/v1/tenant/knowledge-library/documents?limit=10", json: { data: [] } },
       { method: "POST", path: "/api/v1/tenant/mcp/installations/inst_1/tools/search/preflight", json: { allowed: true } },
       { method: "POST", path: "/api/v1/tenant/agents/memory-retrievals", json: { items: [] } },
       { method: "GET", path: "/api/v1/tenant/agents/intelligence/signals?agentId=agent_1", json: { items: [] } },
@@ -91,6 +118,8 @@ describe("server SDK", () => {
     const zaby = new Zaby({ apiKey: "zaby_pk_test", transport });
 
     await zaby.knowledgeBases.create({ name: "Product KB" });
+    await zaby.knowledgeBases.createLibraryTextDocument({ title: "Product Notes", content: "hello" });
+    await zaby.knowledgeBases.listLibraryDocuments({ limit: 10 });
     await zaby.mcp.preflightInvocation("inst_1", "search", { arguments: { q: "refund" } });
     await zaby.memory.retrieve({ agentId: "agent_1", query: "What does this user prefer?" });
     await zaby.intelligence.listSignals({ agentId: "agent_1" });
@@ -99,6 +128,8 @@ describe("server SDK", () => {
 
     expect(transport.requests.map((request) => request.path)).toEqual([
       "/api/v1/tenant/knowledge-bases",
+      "/api/v1/tenant/knowledge-library/documents/text",
+      "/api/v1/tenant/knowledge-library/documents?limit=10",
       "/api/v1/tenant/mcp/installations/inst_1/tools/search/preflight",
       "/api/v1/tenant/agents/memory-retrievals",
       "/api/v1/tenant/agents/intelligence/signals?agentId=agent_1",

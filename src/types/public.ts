@@ -5,6 +5,7 @@ export type JsonObject = { [key: string]: JsonValue | undefined };
 export type MaybePromise<T> = T | Promise<T>;
 
 export type ZabyApiKeyProvider = string | (() => MaybePromise<string>);
+export type ZabyAccessTokenProvider = string | (() => MaybePromise<string>);
 export type ZabyRuntimeTokenProvider = string | (() => MaybePromise<string>);
 
 export type RequestOptions = {

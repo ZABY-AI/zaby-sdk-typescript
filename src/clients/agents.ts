@@ -103,6 +103,13 @@ export class RuntimeTokensClient {
       ...options,
     });
   }
+
+  recordFeedback(runId: string, input: unknown, options?: RequestOptions) {
+    return this.core.request("POST", `/api/v1/provisioning/managed-agents/runs/${encodePath(runId)}/feedback`, {
+      json: input,
+      ...options,
+    });
+  }
 }
 
 export class ApprovalsClient {

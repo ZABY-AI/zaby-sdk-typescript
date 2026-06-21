@@ -55,6 +55,8 @@ import { Zaby } from "@zaby/sdk";
 
 const zaby = new Zaby({
   apiKey: process.env.ZABY_API_KEY!,
+  // Optional: required for tenant Agentic OS management APIs.
+  accessToken: process.env.ZABY_TENANT_ACCESS_TOKEN,
 });
 
 const app = await zaby.externalApps.create({
@@ -109,9 +111,13 @@ zaby.agents.deploy(...)
 zaby.externalApps.create(...)
 zaby.externalApps.bindDeployment(...)
 zaby.runtimeTokens.create(...)
+zaby.runtimeTokens.recordFeedback(...)
 
 zaby.knowledgeBases.create(...)
 zaby.knowledgeBases.uploadTextDocument(...)
+zaby.knowledgeBases.createLibraryTextDocument(...)
+zaby.knowledgeBases.listLibraryDocuments(...)
+zaby.knowledgeBases.linkLibraryDocument(...)
 zaby.knowledgeBases.createSource(...)
 zaby.knowledgeBases.createIngestionPolicy(...)
 zaby.knowledgeBases.listJobs(...)
@@ -148,6 +154,24 @@ Optional overrides:
 
 ```sh
 ZABY_API_ORIGIN=https://genapi.zaby.io npm run test:e2e
+```
+
+Full local Agentic OS E2E seeds a tenant, owner session, and API key from the backend DB env, then exercises the SDK against `http://localhost:9080`:
+
+```sh
+npm run test:e2e:local
+```
+
+Run the backend API first with in-process tenant dispatch and local runtime env:
+
+```sh
+API_GATEWAY_DISPATCH_MODE=inprocess \
+JWT_SECRET=development-jwt-secret \
+MANAGED_AGENT_RUNTIME_TOKEN_SECRET=development-managed-agent-runtime-secret \
+MANAGED_AGENT_RUNTIME_ENABLED=true \
+MANAGED_AGENT_RUNTIME_STUB_RUNNER=true \
+MANAGED_AGENT_MEMORY_ENABLED=false \
+bun --cwd ../zaby-mono-backend/apps/api src/server.ts
 ```
 
 ## Terminal Agentic Chat

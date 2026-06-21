@@ -3,36 +3,46 @@ import type { RequestOptions } from "../types/public";
 import { encodePath } from "../util";
 
 const KBS = "/api/v1/tenant/knowledge-bases";
+const KNOWLEDGE_LIBRARY = "/api/v1/tenant/knowledge-library";
 
 export class KnowledgeBasesClient {
   constructor(private readonly core: ZabyCoreClient) {}
 
-  list(query?: Record<string, unknown>, options?: RequestOptions) {
-    return this.core.request("GET", KBS, { query: query as any, ...options });
-  }
-
   create(input: unknown, options?: RequestOptions) {
     return this.core.request("POST", KBS, { json: input, ...options });
-  }
-
-  get(knowledgeBaseId: string, options?: RequestOptions) {
-    return this.core.request("GET", `${KBS}/${encodePath(knowledgeBaseId)}`, options);
-  }
-
-  update(knowledgeBaseId: string, input: unknown, options?: RequestOptions) {
-    return this.core.request("PATCH", `${KBS}/${encodePath(knowledgeBaseId)}`, { json: input, ...options });
-  }
-
-  archive(knowledgeBaseId: string, options?: RequestOptions) {
-    return this.core.request("POST", `${KBS}/${encodePath(knowledgeBaseId)}/archive`, options);
   }
 
   uploadTextDocument(knowledgeBaseId: string, input: unknown, options?: RequestOptions) {
     return this.core.request("POST", `${KBS}/${encodePath(knowledgeBaseId)}/documents/text`, { json: input, ...options });
   }
 
-  listDocuments(knowledgeBaseId: string, query?: Record<string, unknown>, options?: RequestOptions) {
-    return this.core.request("GET", `${KBS}/${encodePath(knowledgeBaseId)}/documents`, { query: query as any, ...options });
+  createLibraryTextDocument(input: unknown, options?: RequestOptions) {
+    return this.core.request("POST", `${KNOWLEDGE_LIBRARY}/documents/text`, { json: input, ...options });
+  }
+
+  listLibraryDocuments(query?: Record<string, unknown>, options?: RequestOptions) {
+    return this.core.request("GET", `${KNOWLEDGE_LIBRARY}/documents`, { query: query as any, ...options });
+  }
+
+  listLibraryDocumentFindings(libraryDocumentId: string, query?: Record<string, unknown>, options?: RequestOptions) {
+    return this.core.request("GET", `${KNOWLEDGE_LIBRARY}/documents/${encodePath(libraryDocumentId)}/findings`, {
+      query: query as any,
+      ...options,
+    });
+  }
+
+  linkLibraryDocument(knowledgeBaseId: string, input: unknown, options?: RequestOptions) {
+    return this.core.request("POST", `${KBS}/${encodePath(knowledgeBaseId)}/library-documents`, {
+      json: input,
+      ...options,
+    });
+  }
+
+  projectLibraryDocument(knowledgeBaseId: string, selectionId: string, input: unknown, options?: RequestOptions) {
+    return this.core.request("POST", `${KBS}/${encodePath(knowledgeBaseId)}/library-documents/${encodePath(selectionId)}/project`, {
+      json: input,
+      ...options,
+    });
   }
 
   retrieve(knowledgeBaseId: string, input: unknown, options?: RequestOptions) {

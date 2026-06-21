@@ -55,6 +55,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "tsx scripts/live-smoke.ts",
+    "test:e2e:local": "tsx scripts/local-agentic-os-e2e.ts",
     "example:chat": "tsx examples/terminal-agentic-chat.tsx",
     "lint": "eslint . --ext .ts,.tsx",
     "prepack": "npm run build"

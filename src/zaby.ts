@@ -1,6 +1,6 @@
 import { resolveZabyConfig, type ZabyGlobalConfig } from "./config";
 import { ZabyCoreClient, type ZabyTransport } from "./transport";
-import type { ZabyApiKeyProvider, ZabyRuntimeTokenProvider } from "./types/public";
+import type { ZabyAccessTokenProvider, ZabyApiKeyProvider, ZabyRuntimeTokenProvider } from "./types/public";
 import {
   AgentsClient,
   ApprovalsClient,
@@ -17,6 +17,7 @@ import { RuntimeApprovalsClient, RuntimeFeedbackClient, RuntimeRunsClient } from
 
 export type ZabyClientOptions = {
   apiKey: ZabyApiKeyProvider;
+  accessToken?: ZabyAccessTokenProvider;
   transport?: ZabyTransport;
   config?: ZabyGlobalConfig;
 };
@@ -42,9 +43,15 @@ export class Zaby {
 
   constructor(options: ZabyClientOptions) {
     const config = resolveZabyConfig(options.config);
-    const core = new ZabyCoreClient(config, async () => ({
-      "x-zaby-api-key": await resolveProvider(options.apiKey),
-    }), options.transport);
+    const core = new ZabyCoreClient(config, async () => {
+      const headers: Record<string, string> = {
+        "x-zaby-api-key": await resolveProvider(options.apiKey),
+      };
+      if (options.accessToken) {
+        headers.authorization = `Bearer ${await resolveProvider(options.accessToken)}`;
+      }
+      return headers;
+    }, options.transport);
 
     this.health = new HealthClient(core);
     this.agents = new AgentsClient(core);
@@ -84,7 +91,7 @@ class HealthClient {
   }
 }
 
-async function resolveProvider(provider: ZabyApiKeyProvider | ZabyRuntimeTokenProvider) {
+async function resolveProvider(provider: ZabyAccessTokenProvider | ZabyApiKeyProvider | ZabyRuntimeTokenProvider) {
   if (typeof provider === "function") return provider();
   return provider;
 }
