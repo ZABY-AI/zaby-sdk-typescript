@@ -1,0 +1,25 @@
+import { configureZaby, LOCAL_ZABY_API_ORIGIN, Zaby } from "../src";
+
+const apiOrigin = process.env.ZABY_API_ORIGIN ?? LOCAL_ZABY_API_ORIGIN;
+
+configureZaby({ apiOrigin });
+
+const apiKey = process.env.ZABY_API_KEY ?? "zaby_pk_smoke_placeholder";
+const zaby = new Zaby({ apiKey });
+
+console.log(`Zaby SDK smoke using ${apiOrigin}`);
+
+const health = await zaby.health.check() as { status?: string };
+if (health.status !== "ok") {
+  throw new Error(`Expected health status ok, received ${JSON.stringify(health)}`);
+}
+console.log("health ok");
+
+if (!process.env.ZABY_API_KEY) {
+  console.log("ZABY_API_KEY not set; skipping authenticated Agentic OS smoke.");
+  process.exit(0);
+}
+
+const usage = await zaby.usage.getAgentUsage();
+console.log("authenticated Agentic OS usage smoke ok");
+console.log(JSON.stringify(usage, null, 2));

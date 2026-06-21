@@ -1,0 +1,77 @@
+{
+  "name": "@zaby/sdk",
+  "version": "0.1.0",
+  "description": "TypeScript SDK for the Zaby Agentic OS.",
+  "type": "module",
+  "license": "MIT",
+  "private": false,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ZABY-AI/zaby-sdk-typescript.git"
+  },
+  "homepage": "https://github.com/ZABY-AI/zaby-sdk-typescript#readme",
+  "bugs": {
+    "url": "https://github.com/ZABY-AI/zaby-sdk-typescript/issues"
+  },
+  "keywords": [
+    "zaby",
+    "agentic-os",
+    "agents",
+    "mcp",
+    "knowledge-base",
+    "sdk",
+    "typescript"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./runtime": {
+      "types": "./dist/runtime.d.ts",
+      "import": "./dist/runtime.js"
+    },
+    "./types": {
+      "types": "./dist/types/public.d.ts",
+      "import": "./dist/types/public.js"
+    },
+    "./errors": {
+      "types": "./dist/errors/index.d.ts",
+      "import": "./dist/errors/index.js"
+    },
+    "./testing": {
+      "types": "./dist/testing/index.d.ts",
+      "import": "./dist/testing/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsup src/index.ts src/runtime.ts src/types/public.ts src/errors/index.ts src/testing/index.ts --format esm --dts --sourcemap --clean",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "tsx scripts/live-smoke.ts",
+    "lint": "eslint . --ext .ts",
+    "prepack": "npm run build"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "overrides": {
+    "esbuild": "^0.28.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.18.0",
+    "@types/node": "^26.0.0",
+    "eslint": "^9.18.0",
+    "tsup": "^8.3.5",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3",
+    "typescript-eslint": "^8.20.0",
+    "vitest": "^4.1.9"
+  }
+}
