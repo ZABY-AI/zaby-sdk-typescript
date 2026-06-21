@@ -36,15 +36,7 @@ configureZaby({
 });
 ```
 
-For local testing:
-
-```ts
-configureZaby({
-  environment: "local",
-});
-```
-
-Local resolves to `http://localhost:9080`. You can override the origin from process env with `ZABY_API_ORIGIN`.
+For private staging or dedicated tenant gateways, pass an explicit API origin through your application config.
 
 ## Server SDK
 
@@ -138,13 +130,7 @@ zaby.usage.getAgentUsage(...)
 
 ## E2E Smoke
 
-Local smoke defaults to `http://localhost:9080`:
-
-```sh
-npm run test:e2e
-```
-
-Authenticated smoke:
+Authenticated smoke tests require tenant credentials:
 
 ```sh
 ZABY_API_KEY=zaby_pk_... npm run test:e2e
@@ -156,24 +142,6 @@ Optional overrides:
 ZABY_API_ORIGIN=https://genapi.zaby.io npm run test:e2e
 ```
 
-Full local Agentic OS E2E seeds a tenant, owner session, and API key from the backend DB env, then exercises the SDK against `http://localhost:9080`:
-
-```sh
-npm run test:e2e:local
-```
-
-Run the backend API first with in-process tenant dispatch and local runtime env:
-
-```sh
-API_GATEWAY_DISPATCH_MODE=inprocess \
-JWT_SECRET=development-jwt-secret \
-MANAGED_AGENT_RUNTIME_TOKEN_SECRET=development-managed-agent-runtime-secret \
-MANAGED_AGENT_RUNTIME_ENABLED=true \
-MANAGED_AGENT_RUNTIME_STUB_RUNNER=true \
-MANAGED_AGENT_MEMORY_ENABLED=false \
-bun --cwd ../zaby-mono-backend/apps/api src/server.ts
-```
-
 ## Terminal Agentic Chat
 
 Run a full terminal chat UI powered by the SDK:
@@ -182,7 +150,7 @@ Run a full terminal chat UI powered by the SDK:
 npm run example:chat
 ```
 
-The chat uses `http://localhost:9080` by default for local testing. Use one of these auth modes:
+Use one of these auth modes:
 
 ```sh
 ZABY_RUNTIME_TOKEN=<disposable-runtime-token> npm run example:chat
