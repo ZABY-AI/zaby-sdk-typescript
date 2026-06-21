@@ -1,5 +1,5 @@
 {
-  "name": "@zaby/sdk",
+  "name": "@zaby-ai/sdk",
   "version": "0.1.0",
   "description": "TypeScript SDK for the Zaby Agentic OS.",
   "type": "module",
@@ -7,7 +7,7 @@
   "private": false,
   "repository": {
     "type": "git",
-    "url": "https://github.com/ZABY-AI/zaby-sdk-typescript.git"
+    "url": "git+https://github.com/ZABY-AI/zaby-sdk-typescript.git"
   },
   "homepage": "https://github.com/ZABY-AI/zaby-sdk-typescript#readme",
   "bugs": {

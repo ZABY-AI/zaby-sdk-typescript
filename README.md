@@ -21,7 +21,7 @@ It intentionally does not expose general tenant modules such as billing, users, 
 ## Install
 
 ```sh
-npm install @zaby/sdk
+npm install @zaby-ai/sdk
 ```
 
 ## Configure
@@ -29,7 +29,7 @@ npm install @zaby/sdk
 Production defaults to `https://genapi.zaby.io`.
 
 ```ts
-import { configureZaby } from "@zaby/sdk";
+import { configureZaby } from "@zaby-ai/sdk";
 
 configureZaby({
   environment: "production",
@@ -51,7 +51,7 @@ Local resolves to `http://localhost:9080`. You can override the origin from proc
 Use tenant API keys only from trusted backend code.
 
 ```ts
-import { Zaby } from "@zaby/sdk";
+import { Zaby } from "@zaby-ai/sdk";
 
 const zaby = new Zaby({
   apiKey: process.env.ZABY_API_KEY!,
@@ -86,7 +86,7 @@ const token = await zaby.runtimeTokens.create({
 Use disposable runtime tokens in browser or untrusted runtime contexts.
 
 ```ts
-import { ZabyRuntime } from "@zaby/sdk/runtime";
+import { ZabyRuntime } from "@zaby-ai/sdk/runtime";
 
 const runtime = new ZabyRuntime({ token: disposableRuntimeToken });
 
