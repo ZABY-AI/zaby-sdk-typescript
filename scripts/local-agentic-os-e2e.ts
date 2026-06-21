@@ -21,6 +21,8 @@ const backendDbEnvPath = resolve(backendRoot, "packages/db/.env");
 const apiOrigin = process.env.ZABY_API_ORIGIN ?? LOCAL_ZABY_API_ORIGIN;
 const tenantDomain = process.env.ZABY_E2E_TENANT_DOMAIN ?? "sdk-e2e.zaby.local";
 const tenantEmail = process.env.ZABY_E2E_TENANT_EMAIL ?? "sdk-e2e-owner@zaby.local";
+const agentProvider = process.env.ZABY_E2E_AGENT_PROVIDER ?? "test";
+const agentModel = process.env.ZABY_E2E_AGENT_MODEL ?? "test-model";
 const e2eNamePrefix = "SDK Local E2E";
 const results: StepResult[] = [];
 
@@ -50,6 +52,8 @@ try {
   console.log(`API origin: ${apiOrigin}`);
   console.log(`Backend root: ${backendRoot}`);
   console.log(`DB env: ${backendDbEnvPath}`);
+  console.log(`Agent provider: ${agentProvider}`);
+  console.log(`Agent model: ${agentModel}`);
 
   const fixture = await runStep("seed tenant, owner, session, API key", async () => {
     return seedTenantFixture();
@@ -74,8 +78,8 @@ try {
   const agent = await runStep("agents.create", async () => zaby.agents.create({
     slug: `sdk-e2e-agent-${suffix}`,
     name: `SDK E2E Agent ${suffix}`,
-    provider: "test",
-    defaultModel: "test-model",
+    provider: agentProvider,
+    defaultModel: agentModel,
     instructions: "Answer in one concise sentence.",
     category: "SUPPORT",
     visibility: "PRIVATE",
