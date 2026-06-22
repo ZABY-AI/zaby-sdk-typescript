@@ -22,7 +22,10 @@ export class RuntimeRunsClient {
       stream: true,
       ...options,
     });
-    yield* parseSseResponse(response);
+    for await (const event of parseSseResponse(response)) {
+      yield event;
+      if (isRunFinishedEvent(event)) break;
+    }
   }
 }
 
@@ -44,4 +47,11 @@ export class RuntimeFeedbackClient {
   create(runId: string, input: unknown, options?: RequestOptions) {
     return this.core.request("POST", `${RUNTIME}/runs/${encodePath(runId)}/feedback`, { json: input, ...options });
   }
+}
+
+function isRunFinishedEvent(event: { event?: string; data: unknown }) {
+  if (event.event === "RunFinished") return true;
+  if (!event.data || typeof event.data !== "object") return false;
+
+  return (event.data as { type?: unknown }).type === "RunFinished";
 }

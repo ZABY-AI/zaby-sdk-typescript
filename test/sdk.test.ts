@@ -93,15 +93,65 @@ describe("server SDK", () => {
     const token = await zaby.runtimeTokens.create({
       externalAppId: "app_1",
       deploymentId: "dep_1",
-      externalUserId: "user_1",
+      uniqueId: "user_1",
+      externalConversationId: "conversation_1",
+      quotaPolicyId: "policy_1",
       ttlSeconds: 600,
       maxUses: 20,
     });
 
     expect(token.token).toBe("runtime_token");
-    expect(transport.requests[0]?.json).toMatchObject({ deploymentId: "dep_1", externalUserId: "user_1" });
+    expect(transport.requests[0]?.json).toMatchObject({
+      deploymentId: "dep_1",
+      externalConversationId: "conversation_1",
+      quotaPolicyId: "policy_1",
+      uniqueId: "user_1",
+    });
     await zaby.runtimeTokens.recordFeedback("run_1", { rating: 5, label: "helpful" });
     expect(transport.requests[1]?.json).toMatchObject({ rating: 5, label: "helpful" });
+  });
+
+  it("rotates disposable runtime tokens and revokes token families through provisioning APIs", async () => {
+    const transport = new MockTransport([
+      {
+        method: "POST",
+        path: "/api/v1/provisioning/managed-agents/runtime-tokens/rotate",
+        status: 201,
+        json: { token: "rotated_token", tokenType: "Bearer", tokenFamilyId: "family_1" },
+      },
+      {
+        method: "POST",
+        path: "/api/v1/provisioning/managed-agents/external-apps/app_1/runtime-tokens/rotate",
+        status: 201,
+        json: { token: "rotated_by_unique_id", tokenType: "Bearer", tokenFamilyId: "family_1" },
+      },
+      {
+        method: "POST",
+        path: "/api/v1/provisioning/managed-agents/runtime-token-families/family_1/revoke",
+        json: { tokenFamilyId: "family_1", revokedAt: "2026-06-21T12:00:00.000Z" },
+      },
+    ]);
+    const zaby = new Zaby({ apiKey: "zaby_pk_test", transport });
+
+    const rotated = await zaby.runtimeTokens.rotate({ previousToken: "runtime_token" });
+    const rotatedByUniqueId = await zaby.runtimeTokens.rotateByUniqueId({
+      deploymentId: "dep_1",
+      externalAppId: "app_1",
+      tokenFamilyId: "family_1",
+      uniqueId: "user_1",
+    });
+    const revoked = await zaby.runtimeTokens.revokeFamily("family_1", {
+      reason: "user requested logout",
+    });
+
+    expect(rotated.token).toBe("rotated_token");
+    expect(rotatedByUniqueId.token).toBe("rotated_by_unique_id");
+    expect(revoked).toMatchObject({ tokenFamilyId: "family_1" });
+    expect(transport.requests.map((request) => request.json)).toEqual([
+      { previousToken: "runtime_token" },
+      { deploymentId: "dep_1", tokenFamilyId: "family_1", uniqueId: "user_1" },
+      { reason: "user requested logout" },
+    ]);
   });
 
   it("routes KB, MCP, memory, intelligence, approval, and usage helpers to Agentic OS APIs", async () => {
@@ -177,6 +227,8 @@ describe("runtime SDK", () => {
     const stream = [
       'id: 1\nevent: TEXT_MESSAGE_CONTENT\ndata: {"type":"TEXT_MESSAGE_CONTENT","delta":"Hel"}\n\n',
       'id: 2\nevent: TEXT_MESSAGE_CONTENT\ndata: {"type":"TEXT_MESSAGE_CONTENT","delta":"lo"}\n\n',
+      'id: 3\nevent: RunFinished\ndata: {"type":"RunFinished","runId":"run_1"}\n\n',
+      'id: 4\nevent: TEXT_MESSAGE_CONTENT\ndata: {"type":"TEXT_MESSAGE_CONTENT","delta":"ignored"}\n\n',
     ].join("");
     const transport = new MockTransport([
       { method: "GET", path: "/api/v1/agent-runtime/runs/run_1/aiui", body: stream, headers: { "content-type": "text/event-stream" } },
@@ -191,6 +243,7 @@ describe("runtime SDK", () => {
     expect(events).toEqual([
       { id: "1", event: "TEXT_MESSAGE_CONTENT", data: { type: "TEXT_MESSAGE_CONTENT", delta: "Hel" } },
       { id: "2", event: "TEXT_MESSAGE_CONTENT", data: { type: "TEXT_MESSAGE_CONTENT", delta: "lo" } },
+      { id: "3", event: "RunFinished", data: { type: "RunFinished", runId: "run_1" } },
     ]);
   });
 

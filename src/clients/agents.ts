@@ -1,5 +1,13 @@
 import type { ZabyCoreClient } from "../transport";
-import type { RequestOptions, RuntimeTokenResponse } from "../types/public";
+import type {
+  RequestOptions,
+  RuntimeTokenCreateInput,
+  RuntimeTokenResponse,
+  RuntimeTokenRevokeFamilyInput,
+  RuntimeTokenRevokeFamilyResponse,
+  RuntimeTokenRotateByUniqueIdInput,
+  RuntimeTokenRotateInput,
+} from "../types/public";
 import { encodePath } from "../util";
 
 const AGENTS = "/api/v1/tenant/agents";
@@ -96,10 +104,36 @@ export class ExternalAppsClient {
 export class RuntimeTokensClient {
   constructor(private readonly core: ZabyCoreClient) {}
 
-  create<T = RuntimeTokenResponse>(input: { externalAppId: string } & Record<string, unknown>, options?: RequestOptions) {
+  create<T = RuntimeTokenResponse>(input: RuntimeTokenCreateInput, options?: RequestOptions) {
     const { externalAppId, ...body } = input;
     return this.core.request<T>("POST", `/api/v1/provisioning/managed-agents/external-apps/${encodePath(externalAppId)}/runtime-tokens`, {
       json: body,
+      ...options,
+    });
+  }
+
+  rotate<T = RuntimeTokenResponse>(input: RuntimeTokenRotateInput, options?: RequestOptions) {
+    return this.core.request<T>("POST", "/api/v1/provisioning/managed-agents/runtime-tokens/rotate", {
+      json: input,
+      ...options,
+    });
+  }
+
+  rotateByUniqueId<T = RuntimeTokenResponse>(input: RuntimeTokenRotateByUniqueIdInput, options?: RequestOptions) {
+    const { externalAppId, ...body } = input;
+    return this.core.request<T>("POST", `/api/v1/provisioning/managed-agents/external-apps/${encodePath(externalAppId)}/runtime-tokens/rotate`, {
+      json: body,
+      ...options,
+    });
+  }
+
+  revokeFamily<T = RuntimeTokenRevokeFamilyResponse>(
+    tokenFamilyId: string,
+    input: RuntimeTokenRevokeFamilyInput,
+    options?: RequestOptions,
+  ) {
+    return this.core.request<T>("POST", `/api/v1/provisioning/managed-agents/runtime-token-families/${encodePath(tokenFamilyId)}/revoke`, {
+      json: input,
       ...options,
     });
   }
