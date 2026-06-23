@@ -1,6 +1,6 @@
 import { resolveZabyConfig, type ZabyGlobalConfig } from "./config";
 import { ZabyCoreClient, type ZabyTransport } from "./transport";
-import type { ZabyAccessTokenProvider, ZabyApiKeyProvider, ZabyRuntimeTokenProvider } from "./types/public";
+import type { RequestOptions, ZabyAccessTokenProvider, ZabyApiKeyProvider, ZabyRuntimeTokenProvider } from "./types/public";
 import {
   AgentsClient,
   ApprovalsClient,
@@ -86,8 +86,8 @@ export class ZabyRuntime {
 class HealthClient {
   constructor(private readonly core: ZabyCoreClient) {}
 
-  check() {
-    return this.core.request("GET", "/health");
+  check(options?: RequestOptions) {
+    return this.core.request("GET", "/health", options);
   }
 }
 
