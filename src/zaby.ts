@@ -1,12 +1,16 @@
 import { resolveZabyConfig, type ZabyGlobalConfig } from "./config";
 import { ZabyCoreClient, type ZabyTransport } from "./transport";
-import type { ZabyAccessTokenProvider, ZabyApiKeyProvider, ZabyRuntimeTokenProvider } from "./types/public";
+import type { RequestOptions, ZabyAccessTokenProvider, ZabyApiKeyProvider, ZabyRuntimeTokenProvider } from "./types/public";
 import {
   AgentsClient,
   ApprovalsClient,
   DeploymentsClient,
   ExternalAppsClient,
   RuntimeTokensClient,
+  RuntimeTokenFamiliesClient,
+  RuntimeTokenPoliciesClient,
+  RuntimeTokenGrantsClient,
+  RuntimeTokenUsageClient,
   UsageClient,
 } from "./clients/agents";
 import { IntelligenceClient } from "./clients/intelligence";
@@ -34,6 +38,10 @@ export class Zaby {
   readonly deployments: DeploymentsClient;
   readonly externalApps: ExternalAppsClient;
   readonly runtimeTokens: RuntimeTokensClient;
+  readonly runtimeTokenFamilies: RuntimeTokenFamiliesClient;
+  readonly runtimeTokenPolicies: RuntimeTokenPoliciesClient;
+  readonly runtimeTokenGrants: RuntimeTokenGrantsClient;
+  readonly runtimeTokenUsage: RuntimeTokenUsageClient;
   readonly knowledgeBases: KnowledgeBasesClient;
   readonly mcp: McpClient;
   readonly memory: MemoryClient;
@@ -58,6 +66,10 @@ export class Zaby {
     this.deployments = new DeploymentsClient(core);
     this.externalApps = new ExternalAppsClient(core);
     this.runtimeTokens = new RuntimeTokensClient(core);
+    this.runtimeTokenFamilies = new RuntimeTokenFamiliesClient(core);
+    this.runtimeTokenPolicies = new RuntimeTokenPoliciesClient(core);
+    this.runtimeTokenGrants = new RuntimeTokenGrantsClient(core);
+    this.runtimeTokenUsage = new RuntimeTokenUsageClient(core);
     this.knowledgeBases = new KnowledgeBasesClient(core);
     this.mcp = new McpClient(core);
     this.memory = new MemoryClient(core);
@@ -86,8 +98,8 @@ export class ZabyRuntime {
 class HealthClient {
   constructor(private readonly core: ZabyCoreClient) {}
 
-  check() {
-    return this.core.request("GET", "/health");
+  check(options?: RequestOptions) {
+    return this.core.request("GET", "/health", options);
   }
 }
 

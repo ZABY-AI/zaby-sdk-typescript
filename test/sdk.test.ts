@@ -74,7 +74,7 @@ describe("server SDK", () => {
     expect(transport.requests[0]?.headers.authorization).toBe("Bearer tenant_access_token");
   });
 
-  it("mints disposable runtime tokens through the provisioning API key surface", async () => {
+  it("mints disposable runtime tokens through the provisioning API surface", async () => {
     const transport = new MockTransport([
       {
         method: "POST",

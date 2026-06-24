@@ -48,7 +48,8 @@ export class HttpTransport implements ZabyTransport {
       const response = await this.config.fetch(request.url, init);
       const headers = headersToRecord(response.headers);
       if (request.stream) {
-        return { status: response.status, headers, bodyStream: response.body };
+        const bodyStream = withReadTimeout(response.body!, this.config.timeoutMs, signal ?? undefined);
+        return { status: response.status, headers, bodyStream };
       }
       const body = await response.text();
       return {
@@ -106,7 +107,7 @@ export class ZabyCoreClient {
 
     const response = await this.sendWithRetry(request);
     if (response.status >= 400) {
-      throw createErrorFromResponse(response);
+      throw createErrorFromResponse(await captureStreamErrorBody(response));
     }
     return response;
   }
@@ -165,6 +166,7 @@ function parseJsonBody(body: string) {
   try {
     return JSON.parse(body);
   } catch {
+    console.warn(`Zaby SDK: Failed to parse response body as JSON — returning undefined`);
     return undefined;
   }
 }
@@ -177,6 +179,62 @@ function parseRetryAfter(value: string | undefined) {
   if (!value) return undefined;
   const seconds = Number(value);
   return Number.isFinite(seconds) ? seconds : undefined;
+}
+
+function withReadTimeout(
+  stream: ReadableStream<Uint8Array>,
+  timeoutMs: number,
+  signal?: AbortSignal,
+): ReadableStream<Uint8Array> {
+  const reader = stream.getReader();
+  return new ReadableStream<Uint8Array>({
+    async pull(controller) {
+      if (signal?.aborted) {
+        controller.error(signal.reason ?? new DOMException("Request aborted", "AbortError"));
+        return;
+      }
+      const timer = setTimeout(() => {
+        controller.error(new DOMException("Stream body read timed out", "TimeoutError"));
+      }, timeoutMs);
+      try {
+        const { value, done } = await reader.read();
+        clearTimeout(timer);
+        if (done) {
+          controller.close();
+        } else {
+          controller.enqueue(value);
+        }
+      } catch (e) {
+        clearTimeout(timer);
+        controller.error(e);
+      }
+    },
+    async cancel(reason) {
+      await reader.cancel(reason);
+      reader.releaseLock();
+    },
+  });
+}
+
+async function captureStreamErrorBody(response: TransportResponse): Promise<TransportResponse> {
+  if (!response.bodyStream || response.json !== undefined) return response;
+  try {
+    const reader = response.bodyStream.getReader();
+    const decoder = new TextDecoder();
+    let text = "";
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      text += decoder.decode(value, { stream: true });
+    }
+    text += decoder.decode();
+    reader.releaseLock();
+    const parsed = parseJsonBody(text);
+    if (parsed) return { ...response, json: parsed, body: text };
+  } catch {
+    // stream already consumed or unreadable — proceed without error details
+  }
+  return response;
 }
 
 function sleep(ms: number) {

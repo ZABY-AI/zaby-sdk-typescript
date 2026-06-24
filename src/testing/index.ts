@@ -18,17 +18,21 @@ export class MockTransport implements ZabyTransport {
   constructor(private readonly responses: MockResponse[]) {}
 
   async send(request: TransportRequest): Promise<TransportResponse> {
+    const reqHeaders = request.headers ?? {};
     this.requests.push({
       ...request,
-      headers: normalizeHeaders(request.headers),
+      headers: normalizeHeaders(reqHeaders),
     });
-    const response = this.responses[this.cursor++];
+    const response = this.responses[this.cursor];
     if (!response) {
       throw new Error(`No mock response configured for ${request.method} ${request.path}`);
     }
-    if (response.method !== request.method || response.path !== request.path) {
+    const requestPath = request.path.split("?")[0];
+    const responsePath = response.path.split("?")[0];
+    if (response.method !== request.method || responsePath !== requestPath) {
       throw new Error(`Expected ${response.method} ${response.path}, received ${request.method} ${request.path}`);
     }
+    this.cursor++;
 
     return {
       status: response.status ?? 200,
