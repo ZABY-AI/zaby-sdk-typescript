@@ -36,16 +36,16 @@ function R(method: string, path: string, status = 200, json: unknown = {}) {
 }
 
 describe("AgentsClient — all methods", () => {
-  const t = () => mockTransport([R("POST", `/api/v1/tenant/agents`)]);
-  const kb = () => mockTransport([R("POST", `/api/v1/tenant/agents/a1/knowledge-bases`)]);
-  const skill = () => mockTransport([R("POST", `/api/v1/tenant/agents/a1/skills`)]);
-  const pub = () => mockTransport([R("POST", `/api/v1/tenant/agents/a1/publish`)]);
-  const dep = () => mockTransport([R("POST", `/api/v1/tenant/agents/a1/deployments`)]);
-  const testR = () => mockTransport([R("POST", `/api/v1/tenant/agents/a1/test-runs`)]);
-  const start = () => mockTransport([R("POST", `/api/v1/tenant/agents/a1/runs`)]);
-  const progress = () => mockTransport([R("GET", `/api/v1/tenant/agents/runs/r1/progress`)]);
-  const events = () => mockTransport([R("GET", `/api/v1/tenant/agents/runs/r1/events`)]);
-  const mcp = () => mockTransport([R("POST", `/api/v1/tenant/agents/a1/mcp-tools`)]);
+  const t = () => mockTransport([R("POST", `/api/v1/provisioning/agentic-os/agents`)]);
+  const kb = () => mockTransport([R("POST", `/api/v1/provisioning/agentic-os/agents/a1/knowledge-bases`)]);
+  const skill = () => mockTransport([R("POST", `/api/v1/provisioning/agentic-os/agents/a1/skills`)]);
+  const pub = () => mockTransport([R("POST", `/api/v1/provisioning/agentic-os/agents/a1/publish`)]);
+  const dep = () => mockTransport([R("POST", `/api/v1/provisioning/agentic-os/agents/a1/deployments`)]);
+  const testR = () => mockTransport([R("POST", `/api/v1/provisioning/agentic-os/agents/a1/test-runs`)]);
+  const start = () => mockTransport([R("POST", `/api/v1/provisioning/agentic-os/agents/a1/runs`)]);
+  const progress = () => mockTransport([R("GET", `/api/v1/provisioning/agentic-os/agents/runs/r1/progress`)]);
+  const events = () => mockTransport([R("GET", `/api/v1/provisioning/agentic-os/agents/runs/r1/events`)]);
+  const mcp = () => mockTransport([R("POST", `/api/v1/provisioning/agentic-os/agents/a1/mcp-tools`)]);
 
   it("create", async () => {
     const tr = t(); const c = new AgentsClient(createCore(tr));
@@ -101,7 +101,7 @@ describe("AgentsClient — all methods", () => {
   });
 
   it("playgroundRuntimeTokens", async () => {
-    const tr = mockTransport([R("GET", `/api/v1/tenant/agents/a1/playground/runtime-tokens`)]);
+    const tr = mockTransport([R("GET", `/api/v1/provisioning/agentic-os/agents/a1/playground/runtime-tokens`)]);
     const c = new AgentsClient(createCore(tr));
     await c.playgroundRuntimeTokens("a1"); expect(tr.requests[0].method).toBe("GET");
   });
@@ -109,13 +109,13 @@ describe("AgentsClient — all methods", () => {
 
 describe("DeploymentsClient — all methods", () => {
   it("create", async () => {
-    const tr = mockTransport([R("POST", `/api/v1/tenant/agents/a1/deployments`)]);
+    const tr = mockTransport([R("POST", `/api/v1/provisioning/agentic-os/agents/a1/deployments`)]);
     const c = new DeploymentsClient(createCore(tr));
     await c.create("a1", {}); expect(tr.requests[0].method).toBe("POST");
   });
 
   it("getProvisioning", async () => {
-    const tr = mockTransport([R("GET", `/api/v1/tenant/agents/deployments/d1/provisioning`)]);
+    const tr = mockTransport([R("GET", `/api/v1/provisioning/managed-agents/deployments/d1/provisioning`)]);
     const c = new DeploymentsClient(createCore(tr));
     await c.getProvisioning("d1"); expect(tr.requests[0].method).toBe("GET");
   });
@@ -123,31 +123,31 @@ describe("DeploymentsClient — all methods", () => {
 
 describe("ExternalAppsClient — all methods", () => {
   it("list", async () => {
-    const tr = mockTransport([R("GET", `/api/v1/tenant/agents/external-apps`)]);
+    const tr = mockTransport([R("GET", `/api/v1/provisioning/managed-agents/external-apps`)]);
     const c = new ExternalAppsClient(createCore(tr));
     await c.list(); expect(tr.requests[0].method).toBe("GET");
   });
 
   it("create", async () => {
-    const tr = mockTransport([R("POST", `/api/v1/tenant/agents/external-apps`)]);
+    const tr = mockTransport([R("POST", `/api/v1/provisioning/managed-agents/external-apps`)]);
     const c = new ExternalAppsClient(createCore(tr));
     await c.create({ name: "app" }); expect(tr.requests[0].method).toBe("POST");
   });
 
   it("get", async () => {
-    const tr = mockTransport([R("GET", `/api/v1/tenant/agents/external-apps/e1`)]);
+    const tr = mockTransport([R("GET", `/api/v1/provisioning/managed-agents/external-apps/e1`)]);
     const c = new ExternalAppsClient(createCore(tr));
     await c.get("e1"); expect(tr.requests[0].method).toBe("GET");
   });
 
   it("update", async () => {
-    const tr = mockTransport([R("PATCH", `/api/v1/tenant/agents/external-apps/e1`)]);
+    const tr = mockTransport([R("PATCH", `/api/v1/provisioning/managed-agents/external-apps/e1`)]);
     const c = new ExternalAppsClient(createCore(tr));
     await c.update("e1", {}); expect(tr.requests[0].method).toBe("PATCH");
   });
 
   it("bindDeployment", async () => {
-    const tr = mockTransport([R("POST", `/api/v1/tenant/agents/external-apps/e1/deployments`)]);
+    const tr = mockTransport([R("POST", `/api/v1/provisioning/managed-agents/external-apps/e1/deployments`)]);
     const c = new ExternalAppsClient(createCore(tr));
     await c.bindDeployment("e1", {}); expect(tr.requests[0].method).toBe("POST");
   });
@@ -172,7 +172,7 @@ describe("RuntimeTokensClient — all methods", () => {
 
 describe("RuntimeTokenFamiliesClient — all methods", () => {
   it("list", async () => {
-    const tr = mockTransport([R("GET", `/api/v1/tenant/agents/runtime-token-families`)]);
+    const tr = mockTransport([R("GET", `/api/v1/provisioning/managed-agents/runtime-token-families`)]);
     const c = new RuntimeTokenFamiliesClient(createCore(tr));
     await c.list(); expect(tr.requests[0].method).toBe("GET");
   });
@@ -186,29 +186,41 @@ describe("RuntimeTokenFamiliesClient — all methods", () => {
 
 describe("RuntimeTokenPoliciesClient — all methods", () => {
   it("list", async () => {
-    const tr = mockTransport([R("GET", `/api/v1/tenant/agents/runtime-token-policies`)]);
+    const tr = mockTransport([R("GET", `/api/v1/provisioning/managed-agents/runtime-token-policies`)]);
     const c = new RuntimeTokenPoliciesClient(createCore(tr));
     await c.list(); expect(tr.requests[0].method).toBe("GET");
   });
 
+  it("create", async () => {
+    const tr = mockTransport([R("POST", `/api/v1/provisioning/managed-agents/runtime-token-policies`)]);
+    const c = new RuntimeTokenPoliciesClient(createCore(tr));
+    await c.create({ name: "policy" }); expect(tr.requests[0].method).toBe("POST");
+  });
+
   it("get", async () => {
-    const tr = mockTransport([R("GET", `/api/v1/tenant/agents/runtime-token-policies/p1`)]);
+    const tr = mockTransport([R("GET", `/api/v1/provisioning/managed-agents/runtime-token-policies/p1`)]);
     const c = new RuntimeTokenPoliciesClient(createCore(tr));
     await c.get("p1"); expect(tr.requests[0].method).toBe("GET");
+  });
+
+  it("update", async () => {
+    const tr = mockTransport([R("PATCH", `/api/v1/provisioning/managed-agents/runtime-token-policies/p1`)]);
+    const c = new RuntimeTokenPoliciesClient(createCore(tr));
+    await c.update("p1", { status: "ACTIVE" }); expect(tr.requests[0].method).toBe("PATCH");
   });
 });
 
 describe("RuntimeTokenGrantsClient", () => {
   it("revoke", async () => {
-    const tr = mockTransport([R("POST", `/api/v1/tenant/agents/runtime-token-grants/g1/revoke`)]);
+    const tr = mockTransport([R("POST", `/api/v1/provisioning/managed-agents/runtime-token-grants/g1/revoke`)]);
     const c = new RuntimeTokenGrantsClient(createCore(tr));
-    await c.revoke("g1"); expect(tr.requests[0].method).toBe("POST");
+    await c.revoke("g1", { reason: "test" }); expect(tr.requests[0].method).toBe("POST");
   });
 });
 
 describe("RuntimeTokenUsageClient", () => {
   it("get", async () => {
-    const tr = mockTransport([R("GET", `/api/v1/tenant/agents/runtime-token-usage`)]);
+    const tr = mockTransport([R("GET", `/api/v1/provisioning/managed-agents/runtime-token-usage`)]);
     const c = new RuntimeTokenUsageClient(createCore(tr));
     await c.get({ agentId: "a1" }); expect(tr.requests[0].method).toBe("GET");
   });
@@ -216,19 +228,19 @@ describe("RuntimeTokenUsageClient", () => {
 
 describe("ApprovalsClient — all methods", () => {
   it("list", async () => {
-    const tr = mockTransport([R("GET", `/api/v1/tenant/agents/approvals`)]);
+    const tr = mockTransport([R("GET", `/api/v1/provisioning/agentic-os/agents/approvals`)]);
     const c = new ApprovalsClient(createCore(tr));
     await c.list(); expect(tr.requests[0].method).toBe("GET");
   });
 
   it("approve", async () => {
-    const tr = mockTransport([R("POST", `/api/v1/tenant/agents/runs/r1/approvals/a1/approve`)]);
+    const tr = mockTransport([R("POST", `/api/v1/provisioning/agentic-os/agents/runs/r1/approvals/a1/approve`)]);
     const c = new ApprovalsClient(createCore(tr));
     await c.approve("r1", "a1"); expect(tr.requests[0].path).toContain("/approve");
   });
 
   it("reject", async () => {
-    const tr = mockTransport([R("POST", `/api/v1/tenant/agents/runs/r1/approvals/a1/reject`)]);
+    const tr = mockTransport([R("POST", `/api/v1/provisioning/agentic-os/agents/runs/r1/approvals/a1/reject`)]);
     const c = new ApprovalsClient(createCore(tr));
     await c.reject("r1", "a1"); expect(tr.requests[0].path).toContain("/reject");
   });
@@ -236,7 +248,7 @@ describe("ApprovalsClient — all methods", () => {
 
 describe("UsageClient", () => {
   it("getAgentUsage", async () => {
-    const tr = mockTransport([R("GET", `/api/v1/tenant/agents/usage`)]);
+    const tr = mockTransport([R("GET", `/api/v1/provisioning/agentic-os/agents/usage`)]);
     const c = new UsageClient(createCore(tr));
     await c.getAgentUsage({ agentId: "a1" });
     expect(tr.requests[0].path).toContain("agentId=a1");
@@ -244,7 +256,7 @@ describe("UsageClient", () => {
 });
 
 describe("IntelligenceClient — all methods", () => {
-  const path = "/api/v1/tenant/agents/intelligence";
+  const path = "/api/v1/provisioning/agentic-os/agents/intelligence";
 
   it("listSignals", async () => {
     const tr = mockTransport([R("GET", `${path}/signals`)]);
@@ -280,8 +292,8 @@ describe("IntelligenceClient — all methods", () => {
 });
 
 describe("KnowledgeBasesClient — all methods", () => {
-  const K = "/api/v1/tenant/knowledge-bases";
-  const KL = "/api/v1/tenant/knowledge-library";
+  const K = "/api/v1/provisioning/agentic-os/knowledge-bases";
+  const KL = "/api/v1/provisioning/agentic-os/knowledge-library";
 
   function each(methods: Array<[string, string, string]>): string[] {
     return methods.map(([m, p]) => {
@@ -355,7 +367,7 @@ describe("KnowledgeBasesClient — all methods", () => {
 });
 
 describe("McpClient — all methods", () => {
-  const M = "/api/v1/tenant/mcp";
+  const M = "/api/v1/provisioning/agentic-os/mcp";
 
   it("listCatalog", async () => {
     const tr = mockTransport([R("GET", `${M}/catalog`)]);
@@ -461,7 +473,7 @@ describe("McpClient — all methods", () => {
 });
 
 describe("MemoryClient — all methods", () => {
-  const A = "/api/v1/tenant/agents";
+  const A = "/api/v1/provisioning/agentic-os/agents";
 
   it("listItems", async () => {
     const tr = mockTransport([R("GET", `${A}/memory-items`)]);

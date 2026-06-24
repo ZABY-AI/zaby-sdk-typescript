@@ -2,7 +2,7 @@ import type { ZabyCoreClient } from "../transport";
 import type { RequestOptions } from "../types/public";
 import { encodePath } from "../util";
 
-const INTELLIGENCE = "/api/v1/tenant/agents/intelligence";
+const INTELLIGENCE = "/api/v1/provisioning/agentic-os/agents/intelligence";
 
 export class IntelligenceClient {
   constructor(private readonly core: ZabyCoreClient) {}

@@ -2,7 +2,7 @@ import type { ZabyCoreClient } from "../transport";
 import type { RequestOptions } from "../types/public";
 import { encodePath } from "../util";
 
-const AGENTS = "/api/v1/tenant/agents";
+const AGENTS = "/api/v1/provisioning/agentic-os/agents";
 
 export class MemoryClient {
   constructor(private readonly core: ZabyCoreClient) {}

@@ -4,7 +4,6 @@
   "description": "TypeScript SDK for the Zaby Agentic OS.",
   "type": "module",
   "license": "MIT",
-  "private": true,
   "repository": {
     "type": "git",
     "url": "git+https://github.com/ZABY-AI/zaby-sdk-typescript.git"

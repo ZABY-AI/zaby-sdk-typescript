@@ -171,10 +171,10 @@ async function mintRuntimeToken(config: Extract<TerminalChatConfig, { mode: "ser
     externalAppId: config.externalAppId,
     deploymentId: config.deploymentId,
     externalUserId: config.externalUserId,
-    externalSessionId: config.externalSessionId,
     channel: "server",
     ttlSeconds: 600,
     maxUses: 100,
+    ...(config.externalSessionId ? { externalSessionId: config.externalSessionId } : {}),
   });
   return token.token;
 }

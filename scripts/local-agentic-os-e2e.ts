@@ -1,4 +1,4 @@
-import { createHmac, randomUUID } from "node:crypto";
+import { randomUUID } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -23,11 +23,12 @@ const tenantDomain = process.env.ZABY_E2E_TENANT_DOMAIN ?? "sdk-e2e.zaby.local";
 const tenantEmail = process.env.ZABY_E2E_TENANT_EMAIL ?? "sdk-e2e-owner@zaby.local";
 const agentProvider = process.env.ZABY_E2E_AGENT_PROVIDER ?? "test";
 const agentModel = process.env.ZABY_E2E_AGENT_MODEL ?? "test-model";
+const runtimeOrigin = process.env.ZABY_E2E_RUNTIME_ORIGIN ?? "http://localhost:3010";
 const e2eNamePrefix = "SDK Local E2E";
 const results: StepResult[] = [];
 
 loadEnvFile(backendDbEnvPath);
-configureZaby({ apiOrigin });
+configureZaby({ apiOrigin, fetch: fetchWithRuntimeOrigin });
 
 const { db } = await importModule<{ db: any }>(resolve(backendRoot, "packages/db/src/index.ts"));
 const { createTenantApiKey } = await importModule<{
@@ -54,6 +55,7 @@ try {
   console.log(`DB env: ${backendDbEnvPath}`);
   console.log(`Agent provider: ${agentProvider}`);
   console.log(`Agent model: ${agentModel}`);
+  console.log(`Runtime origin: ${runtimeOrigin}`);
 
   const fixture = await runStep("seed tenant, owner, session, API key", async () => {
     return seedTenantFixture();
@@ -65,7 +67,6 @@ try {
 
   const zaby = new Zaby({
     apiKey: fixture.apiKeySecret,
-    accessToken: fixture.accessToken,
   });
 
   await runStep("health.check", async () => {
@@ -152,7 +153,7 @@ try {
   const externalApp = await runStep("externalApps.create", async () => zaby.externalApps.create({
     name: `SDK E2E Embedded App ${suffix}`,
     slug: `sdk-e2e-app-${suffix}`,
-    allowedOrigins: ["http://localhost:9080"],
+    allowedOrigins: [runtimeOrigin],
     tokenTtlSeconds: 600,
     metadata: { source: "zaby-sdk-local-e2e" },
   }), idDetail);
@@ -174,6 +175,21 @@ try {
     const record = asRecord(value);
     return `externalApps=${Array.isArray(record.externalApps) ? record.externalApps.length : 0}`;
   });
+  const runtimeTokenPolicy = await runStep("runtimeTokenPolicies.create", async () => zaby.runtimeTokenPolicies.create({
+    name: `SDK E2E Runtime Policy ${suffix}`,
+    externalAppId,
+    deploymentId,
+    maxConcurrentRuns: 3,
+    tokenTtlSeconds: 600,
+    maxUsesPerToken: 50,
+    metadata: { source: "zaby-sdk-local-e2e" },
+  }), idDetail);
+  const runtimeTokenPolicyId = idOf(runtimeTokenPolicy, "runtime token policy");
+  await runStep("runtimeTokenPolicies.get", async () => zaby.runtimeTokenPolicies.get(runtimeTokenPolicyId), idDetail);
+  await runStep("runtimeTokenPolicies.update", async () => zaby.runtimeTokenPolicies.update(runtimeTokenPolicyId, {
+    metadata: { source: "zaby-sdk-local-e2e", updated: true },
+  }), idDetail);
+  await runStep("runtimeTokenPolicies.list", async () => zaby.runtimeTokenPolicies.list({ externalAppId, deploymentId, activeOnly: true }), itemsDetail);
 
   await runStep("mcp.listCatalog", async () => zaby.mcp.listCatalog(), itemsDetail);
   const mcpServer = await runStep("mcp.createServer", async () => zaby.mcp.createServer({
@@ -221,6 +237,7 @@ try {
   const runtimeToken = await runStep("runtimeTokens.create", async () => zaby.runtimeTokens.create({
     externalAppId,
     deploymentId,
+    quotaPolicyId: runtimeTokenPolicyId,
     externalUserId: "sdk-e2e-user",
     externalSessionId: `sdk-session-${suffix}`,
     externalConversationId: `sdk-conversation-${suffix}`,
@@ -238,6 +255,11 @@ try {
   }), (value) => {
     const record = asRecord(value);
     return `grant=${String(record.grantId ?? "unknown")}`;
+  });
+  await runStep("runtimeTokenFamilies.list", async () => zaby.runtimeTokenFamilies.list(), itemsDetail);
+  await runStep("runtimeTokenUsage.get", async () => zaby.runtimeTokenUsage.get({ externalAppId, deploymentId }), (value) => {
+    const record = asRecord(value);
+    return `quotaWindows=${Array.isArray(record.quotaWindows) ? record.quotaWindows.length : 0}`;
   });
   const disposableToken = stringField(runtimeToken, "token");
   const runtime = new ZabyRuntime({ token: disposableToken });
@@ -356,19 +378,6 @@ async function seedTenantFixture() {
   const freshTenant = await db.tenants.findUniqueOrThrow({ where: { id: tenant.id } });
   await ensureTenantOwnerRoleAssignment(owner, freshTenant);
 
-  await db.tenantSession.updateMany({
-    where: {
-      tenantId: tenant.id,
-      tenantUserId: owner.id,
-      userAgent: "zaby-sdk-local-e2e",
-      status: "ACTIVE",
-    },
-    data: {
-      status: "REVOKED",
-      endedAt: new Date(),
-    },
-  });
-
   await db.tenantApiKey.updateMany({
     where: {
       tenantId: tenant.id,
@@ -379,23 +388,6 @@ async function seedTenantFixture() {
     data: { status: "INACTIVE" },
   });
 
-  const sessionJti = randomUUID();
-  const sessionExpiresAt = new Date(Date.now() + 2 * 60 * 60 * 1000);
-  await db.tenantSession.create({
-    data: {
-      jti: sessionJti,
-      tenantId: tenant.id,
-      tenantUserId: owner.id,
-      status: "ACTIVE",
-      ipAddress: "127.0.0.1",
-      device: "local-sdk-e2e",
-      browser: "SDK",
-      os: process.platform,
-      userAgent: "zaby-sdk-local-e2e",
-      expiresAt: sessionExpiresAt,
-    },
-  });
-
   const apiKey = await createTenantApiKey({
     tenantId: tenant.id,
     tenantUserId: owner.id,
@@ -404,21 +396,11 @@ async function seedTenantFixture() {
     expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
   });
 
-  const accessToken = signHs256Jwt({
-    sub: owner.id,
-    tenantId: tenant.id,
-    jti: sessionJti,
-    roles: ["Owner"],
-    isOwner: true,
-    exp: Math.floor(Date.now() / 1000) + 15 * 60,
-  }, process.env.JWT_SECRET?.trim() || "development-jwt-secret");
-
   return {
     tenant,
     owner,
     apiKeySecret: apiKey.secret,
     apiKeyPrefix: apiKey.apiKey.keyPrefix,
-    accessToken,
   };
 }
 
@@ -471,19 +453,14 @@ function loadEnvFile(filePath: string) {
   }
 }
 
+function fetchWithRuntimeOrigin(input: Parameters<typeof fetch>[0], init: Parameters<typeof fetch>[1] = {}) {
+  const headers = new Headers(init.headers);
+  headers.set("origin", runtimeOrigin);
+  return fetch(input, { ...init, headers });
+}
+
 async function importModule<T>(path: string): Promise<T> {
   return await import(pathToFileURL(path).href) as T;
-}
-
-function signHs256Jwt(payload: JsonRecord, secret: string) {
-  const header = base64Url(JSON.stringify({ alg: "HS256", typ: "JWT" }));
-  const body = base64Url(JSON.stringify(payload));
-  const signature = createHmac("sha256", secret).update(`${header}.${body}`).digest("base64url");
-  return `${header}.${body}.${signature}`;
-}
-
-function base64Url(value: string) {
-  return Buffer.from(value).toString("base64url");
 }
 
 function asRecord(value: unknown): JsonRecord {

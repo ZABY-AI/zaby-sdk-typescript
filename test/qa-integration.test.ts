@@ -113,76 +113,76 @@ describe("all client methods use correct paths", () => {
     expect(t.requests[0].path).toBe("/health");
   });
 
-  it("agents.create() → POST /api/v1/tenant/agents", async () => {
-    const t = transport([R("POST", "/api/v1/tenant/agents", 200, { id: "a1" })]);
+  it("agents.create() → POST /api/v1/provisioning/agentic-os/agents", async () => {
+    const t = transport([R("POST", "/api/v1/provisioning/agentic-os/agents", 200, { id: "a1" })]);
     await new Zaby({ apiKey: "pk", transport: t }).agents.create({ name: "a" });
     expect(t.requests[0].json).toEqual({ name: "a" });
   });
 
-  it("agents.attachMcpTool() → POST /api/v1/tenant/agents/{id}/mcp-tools", async () => {
-    const t = transport([R("POST", "/api/v1/tenant/agents/a1/mcp-tools", 200, {})]);
+  it("agents.attachMcpTool() → POST /api/v1/provisioning/agentic-os/agents/{id}/mcp-tools", async () => {
+    const t = transport([R("POST", "/api/v1/provisioning/agentic-os/agents/a1/mcp-tools", 200, {})]);
     await new Zaby({ apiKey: "pk", transport: t }).agents.attachMcpTool("a1", { toolId: "t1" });
     expect(t.requests[0].json).toEqual({ toolId: "t1" });
   });
 
-  it("agents.attachKnowledgeBase() → POST /api/v1/tenant/agents/{id}/knowledge-bases", async () => {
-    const t = transport([R("POST", "/api/v1/tenant/agents/a1/knowledge-bases", 200, {})]);
+  it("agents.attachKnowledgeBase() → POST /api/v1/provisioning/agentic-os/agents/{id}/knowledge-bases", async () => {
+    const t = transport([R("POST", "/api/v1/provisioning/agentic-os/agents/a1/knowledge-bases", 200, {})]);
     await new Zaby({ apiKey: "pk", transport: t }).agents.attachKnowledgeBase("a1", { kbId: "kb1" });
   });
 
-  it("agents.attachSkill() → POST /api/v1/tenant/agents/{id}/skills", async () => {
-    const t = transport([R("POST", "/api/v1/tenant/agents/a1/skills", 200, {})]);
+  it("agents.attachSkill() → POST /api/v1/provisioning/agentic-os/agents/{id}/skills", async () => {
+    const t = transport([R("POST", "/api/v1/provisioning/agentic-os/agents/a1/skills", 200, {})]);
     await new Zaby({ apiKey: "pk", transport: t }).agents.attachSkill("a1", { skillId: "s1" });
   });
 
-  it("agents.publish() → POST /api/v1/tenant/agents/{id}/publish", async () => {
-    const t = transport([R("POST", "/api/v1/tenant/agents/a1/publish", 200, {})]);
+  it("agents.publish() → POST /api/v1/provisioning/agentic-os/agents/{id}/publish", async () => {
+    const t = transport([R("POST", "/api/v1/provisioning/agentic-os/agents/a1/publish", 200, {})]);
     await new Zaby({ apiKey: "pk", transport: t }).agents.publish("a1");
   });
 
-  it("agents.deploy() → POST /api/v1/tenant/agents/{id}/deployments", async () => {
-    const t = transport([R("POST", "/api/v1/tenant/agents/a1/deployments", 200, {})]);
+  it("agents.deploy() → POST /api/v1/provisioning/agentic-os/agents/{id}/deployments", async () => {
+    const t = transport([R("POST", "/api/v1/provisioning/agentic-os/agents/a1/deployments", 200, {})]);
     await new Zaby({ apiKey: "pk", transport: t }).agents.deploy("a1", { config: {} });
   });
 
-  it("agents.startRun() → POST /api/v1/tenant/agents/{id}/runs", async () => {
-    const t = transport([R("POST", "/api/v1/tenant/agents/a1/runs", 200, { runId: "r1" })]);
+  it("agents.startRun() → POST /api/v1/provisioning/agentic-os/agents/{id}/runs", async () => {
+    const t = transport([R("POST", "/api/v1/provisioning/agentic-os/agents/a1/runs", 200, { runId: "r1" })]);
     await new Zaby({ apiKey: "pk", transport: t }).agents.startRun("a1", { input: {} });
   });
 
-  it("agents.getRunProgress() → GET /api/v1/tenant/agents/runs/{runId}/progress", async () => {
-    const t = transport([R("GET", "/api/v1/tenant/agents/runs/r1/progress", 200, {})]);
+  it("agents.getRunProgress() → GET /api/v1/provisioning/agentic-os/agents/runs/{runId}/progress", async () => {
+    const t = transport([R("GET", "/api/v1/provisioning/agentic-os/agents/runs/r1/progress", 200, {})]);
     await new Zaby({ apiKey: "pk", transport: t }).agents.getRunProgress("r1");
   });
 
-  it("agents.listRunEvents() → GET /api/v1/tenant/agents/runs/{runId}/events", async () => {
-    const t = transport([R("GET", "/api/v1/tenant/agents/runs/r1/events", 200, {})]);
+  it("agents.listRunEvents() → GET /api/v1/provisioning/agentic-os/agents/runs/{runId}/events", async () => {
+    const t = transport([R("GET", "/api/v1/provisioning/agentic-os/agents/runs/r1/events", 200, {})]);
     await new Zaby({ apiKey: "pk", transport: t }).agents.listRunEvents("r1");
   });
 
-  it("externalApps.list() → GET /api/v1/tenant/agents/external-apps", async () => {
-    const t = transport([R("GET", "/api/v1/tenant/agents/external-apps", 200, { apps: [] })]);
+  it("externalApps.list() → GET /api/v1/provisioning/managed-agents/external-apps", async () => {
+    const t = transport([R("GET", "/api/v1/provisioning/managed-agents/external-apps", 200, { apps: [] })]);
     const result = await new Zaby({ apiKey: "pk", transport: t }).externalApps.list();
     expect(result).toEqual({ apps: [] });
   });
 
-  it("externalApps.create() → POST /api/v1/tenant/agents/external-apps", async () => {
-    const t = transport([R("POST", "/api/v1/tenant/agents/external-apps", 201, {})]);
+  it("externalApps.create() → POST /api/v1/provisioning/managed-agents/external-apps", async () => {
+    const t = transport([R("POST", "/api/v1/provisioning/managed-agents/external-apps", 201, {})]);
     await new Zaby({ apiKey: "pk", transport: t }).externalApps.create({ name: "app1" });
   });
 
-  it("externalApps.get() → GET /api/v1/tenant/agents/external-apps/{id}", async () => {
-    const t = transport([R("GET", "/api/v1/tenant/agents/external-apps/e1", 200, {})]);
+  it("externalApps.get() → GET /api/v1/provisioning/managed-agents/external-apps/{id}", async () => {
+    const t = transport([R("GET", "/api/v1/provisioning/managed-agents/external-apps/e1", 200, {})]);
     await new Zaby({ apiKey: "pk", transport: t }).externalApps.get("e1");
   });
 
-  it("externalApps.update() → PATCH /api/v1/tenant/agents/external-apps/{id}", async () => {
-    const t = transport([R("PATCH", "/api/v1/tenant/agents/external-apps/e1", 200, {})]);
+  it("externalApps.update() → PATCH /api/v1/provisioning/managed-agents/external-apps/{id}", async () => {
+    const t = transport([R("PATCH", "/api/v1/provisioning/managed-agents/external-apps/e1", 200, {})]);
     await new Zaby({ apiKey: "pk", transport: t }).externalApps.update("e1", { name: "u" });
   });
 
-  it("deployments.create() → POST /api/v1/tenant/agents/{id}/deployments", async () => {
-    const t = transport([R("POST", "/api/v1/tenant/agents/a1/deployments", 200, {})]);
+  it("deployments.create() → POST /api/v1/provisioning/agentic-os/agents/{id}/deployments", async () => {
+    const t = transport([R("POST", "/api/v1/provisioning/agentic-os/agents/a1/deployments", 200, {})]);
     await new Zaby({ apiKey: "pk", transport: t }).deployments.create("a1", {});
   });
 
@@ -191,48 +191,48 @@ describe("all client methods use correct paths", () => {
     await new Zaby({ apiKey: "pk", transport: t }).runtimeTokens.create({ externalAppId: "e1" });
   });
 
-  it("approvals.list() → GET /api/v1/tenant/agents/approvals", async () => {
-    const t = transport([R("GET", "/api/v1/tenant/agents/approvals", 200, { approvals: [] })]);
+  it("approvals.list() → GET /api/v1/provisioning/agentic-os/agents/approvals", async () => {
+    const t = transport([R("GET", "/api/v1/provisioning/agentic-os/agents/approvals", 200, { approvals: [] })]);
     await new Zaby({ apiKey: "pk", transport: t }).approvals.list();
   });
 
-  it("usage.getAgentUsage() → GET /api/v1/tenant/agents/usage", async () => {
-    const t = transport([R("GET", "/api/v1/tenant/agents/usage", 200, { usage: [] })]);
+  it("usage.getAgentUsage() → GET /api/v1/provisioning/agentic-os/agents/usage", async () => {
+    const t = transport([R("GET", "/api/v1/provisioning/agentic-os/agents/usage", 200, { usage: [] })]);
     await new Zaby({ apiKey: "pk", transport: t }).usage.getAgentUsage();
   });
 
-  it("knowledgeBases.create() → POST /api/v1/tenant/knowledge-bases", async () => {
-    const t = transport([R("POST", "/api/v1/tenant/knowledge-bases", 200, {})]);
+  it("knowledgeBases.create() → POST /api/v1/provisioning/agentic-os/knowledge-bases", async () => {
+    const t = transport([R("POST", "/api/v1/provisioning/agentic-os/knowledge-bases", 200, {})]);
     await new Zaby({ apiKey: "pk", transport: t }).knowledgeBases.create({ name: "kb1" });
   });
 
-  it("knowledgeBases.retrieve() → POST /api/v1/tenant/knowledge-bases/{id}/retrieve", async () => {
-    const t = transport([R("POST", "/api/v1/tenant/knowledge-bases/kb1/retrieve", 200, {})]);
+  it("knowledgeBases.retrieve() → POST /api/v1/provisioning/agentic-os/knowledge-bases/{id}/retrieve", async () => {
+    const t = transport([R("POST", "/api/v1/provisioning/agentic-os/knowledge-bases/kb1/retrieve", 200, {})]);
     await new Zaby({ apiKey: "pk", transport: t }).knowledgeBases.retrieve("kb1", { query: "q" });
   });
 
-  it("mcp.listCatalog() → GET /api/v1/tenant/mcp/catalog", async () => {
-    const t = transport([R("GET", "/api/v1/tenant/mcp/catalog", 200, { tools: [] })]);
+  it("mcp.listCatalog() → GET /api/v1/provisioning/agentic-os/mcp/catalog", async () => {
+    const t = transport([R("GET", "/api/v1/provisioning/agentic-os/mcp/catalog", 200, { tools: [] })]);
     await new Zaby({ apiKey: "pk", transport: t }).mcp.listCatalog();
   });
 
-  it("mcp.createServer() → POST /api/v1/tenant/mcp/servers", async () => {
-    const t = transport([R("POST", "/api/v1/tenant/mcp/servers", 200, {})]);
+  it("mcp.createServer() → POST /api/v1/provisioning/agentic-os/mcp/servers", async () => {
+    const t = transport([R("POST", "/api/v1/provisioning/agentic-os/mcp/servers", 200, {})]);
     await new Zaby({ apiKey: "pk", transport: t }).mcp.createServer({});
   });
 
-  it("memory.listItems() → GET /api/v1/tenant/agents/memory-items", async () => {
-    const t = transport([R("GET", "/api/v1/tenant/agents/memory-items", 200, { items: [] })]);
+  it("memory.listItems() → GET /api/v1/provisioning/agentic-os/agents/memory-items", async () => {
+    const t = transport([R("GET", "/api/v1/provisioning/agentic-os/agents/memory-items", 200, { items: [] })]);
     await new Zaby({ apiKey: "pk", transport: t }).memory.listItems();
   });
 
-  it("memory.retrieve() → POST /api/v1/tenant/agents/memory-retrievals", async () => {
-    const t = transport([R("POST", "/api/v1/tenant/agents/memory-retrievals", 200, { results: [] })]);
+  it("memory.retrieve() → POST /api/v1/provisioning/agentic-os/agents/memory-retrievals", async () => {
+    const t = transport([R("POST", "/api/v1/provisioning/agentic-os/agents/memory-retrievals", 200, { results: [] })]);
     await new Zaby({ apiKey: "pk", transport: t }).memory.retrieve({ text: "hello" });
   });
 
-  it("intelligence.listSignals() → GET /api/v1/tenant/agents/intelligence/signals", async () => {
-    const t = transport([R("GET", "/api/v1/tenant/agents/intelligence/signals", 200, {})]);
+  it("intelligence.listSignals() → GET /api/v1/provisioning/agentic-os/agents/intelligence/signals", async () => {
+    const t = transport([R("GET", "/api/v1/provisioning/agentic-os/agents/intelligence/signals", 200, {})]);
     await new Zaby({ apiKey: "pk", transport: t }).intelligence.listSignals();
   });
 
@@ -341,11 +341,11 @@ describe("BUGS FOUND via integration test", () => {
   });
 
   it("BUG-INT-003: RunEvents uses unsafe cast query as any", async () => {
-    const t = transport([R("GET", "/api/v1/tenant/agents/runs/r1/events?key=value", 200, {})]);
+    const t = transport([R("GET", "/api/v1/provisioning/agentic-os/agents/runs/r1/events?key=value", 200, {})]);
     await new Zaby({ apiKey: "pk", transport: t }).agents.listRunEvents("r1", { key: "value" } as any);
     // The cast (query as Record<string, string | number | boolean | null | undefined>)
     // is used at agents.ts:48 — same pattern as BUG-009
-    expect(t.requests[0].path).toBe("/api/v1/tenant/agents/runs/r1/events?key=value");
+    expect(t.requests[0].path).toBe("/api/v1/provisioning/agentic-os/agents/runs/r1/events?key=value");
   });
 
   it("BUG-INT-004: RuntimeRunsClient.events uses query as any cast", async () => {

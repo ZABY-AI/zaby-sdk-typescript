@@ -2,8 +2,9 @@ import type { ZabyCoreClient } from "../transport";
 import type { RequestOptions } from "../types/public";
 import { encodePath } from "../util";
 
-const KBS = "/api/v1/tenant/knowledge-bases";
-const KNOWLEDGE_LIBRARY = "/api/v1/tenant/knowledge-library";
+const AGENTIC_OS = "/api/v1/provisioning/agentic-os";
+const KBS = `${AGENTIC_OS}/knowledge-bases`;
+const KNOWLEDGE_LIBRARY = `${AGENTIC_OS}/knowledge-library`;
 
 export class KnowledgeBasesClient {
   constructor(private readonly core: ZabyCoreClient) {}

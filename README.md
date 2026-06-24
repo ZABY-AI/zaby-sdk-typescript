@@ -40,15 +40,13 @@ For private staging or dedicated tenant gateways, pass an explicit API origin th
 
 ## Server SDK
 
-Use tenant API keys only from trusted backend code.
+Use tenant API keys only from trusted backend code. Agentic OS management APIs in this SDK are API-key driven.
 
 ```ts
 import { Zaby } from "@zaby-ai/sdk";
 
 const zaby = new Zaby({
   apiKey: process.env.ZABY_API_KEY!,
-  // Optional: required for tenant Agentic OS management APIs.
-  accessToken: process.env.ZABY_TENANT_ACCESS_TOKEN,
 });
 
 const app = await zaby.externalApps.create({
@@ -130,7 +128,7 @@ zaby.usage.getAgentUsage(...)
 
 ## E2E Smoke
 
-Authenticated smoke tests require tenant credentials:
+Authenticated smoke tests require a provisioning API key:
 
 ```sh
 ZABY_API_KEY=zaby_pk_... npm run test:e2e

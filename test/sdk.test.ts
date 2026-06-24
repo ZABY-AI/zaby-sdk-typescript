@@ -39,9 +39,11 @@ describe("configuration", () => {
 });
 
 describe("server SDK", () => {
-  it("sends tenant API keys and creates managed agents on the Agentic OS tenant path", async () => {
+  const AGENTIC_OS = "/api/v1/provisioning/agentic-os";
+
+  it("sends tenant API keys and creates managed agents on the Agentic OS provisioning path", async () => {
     const transport = new MockTransport([
-      { method: "POST", path: "/api/v1/tenant/agents", json: { id: "agent_1" }, status: 201 },
+      { method: "POST", path: `${AGENTIC_OS}/agents`, json: { id: "agent_1" }, status: 201 },
     ]);
     const zaby = new Zaby({ apiKey: "zaby_pk_test", transport });
 
@@ -56,10 +58,10 @@ describe("server SDK", () => {
     expect(transport.requests[0]?.json).toMatchObject({ slug: "support", name: "Support Agent" });
   });
 
-  it("can send a tenant bearer access token alongside the tenant API key", async () => {
+  it("can send an optional bearer access token alongside the tenant API key", async () => {
     const tokenProvider = vi.fn(async () => "tenant_access_token");
     const transport = new MockTransport([
-      { method: "POST", path: "/api/v1/tenant/agents", json: { id: "agent_1" }, status: 201 },
+      { method: "POST", path: `${AGENTIC_OS}/agents`, json: { id: "agent_1" }, status: 201 },
     ]);
     const zaby = new Zaby({ apiKey: "zaby_pk_test", accessToken: tokenProvider, transport });
 
@@ -156,14 +158,14 @@ describe("server SDK", () => {
 
   it("routes KB, MCP, memory, intelligence, approval, and usage helpers to Agentic OS APIs", async () => {
     const transport = new MockTransport([
-      { method: "POST", path: "/api/v1/tenant/knowledge-bases", status: 201, json: { id: "kb_1" } },
-      { method: "POST", path: "/api/v1/tenant/knowledge-library/documents/text", status: 201, json: { id: "doc_1" } },
-      { method: "GET", path: "/api/v1/tenant/knowledge-library/documents?limit=10", json: { data: [] } },
-      { method: "POST", path: "/api/v1/tenant/mcp/installations/inst_1/tools/search/preflight", json: { allowed: true } },
-      { method: "POST", path: "/api/v1/tenant/agents/memory-retrievals", json: { items: [] } },
-      { method: "GET", path: "/api/v1/tenant/agents/intelligence/signals?agentId=agent_1", json: { items: [] } },
-      { method: "POST", path: "/api/v1/tenant/agents/runs/run_1/approvals/appr_1/approve", json: { status: "APPROVED" } },
-      { method: "GET", path: "/api/v1/tenant/agents/usage?agentId=agent_1", json: { totalRuns: 1 } },
+      { method: "POST", path: `${AGENTIC_OS}/knowledge-bases`, status: 201, json: { id: "kb_1" } },
+      { method: "POST", path: `${AGENTIC_OS}/knowledge-library/documents/text`, status: 201, json: { id: "doc_1" } },
+      { method: "GET", path: `${AGENTIC_OS}/knowledge-library/documents?limit=10`, json: { data: [] } },
+      { method: "POST", path: `${AGENTIC_OS}/mcp/installations/inst_1/tools/search/preflight`, json: { allowed: true } },
+      { method: "POST", path: `${AGENTIC_OS}/agents/memory-retrievals`, json: { items: [] } },
+      { method: "GET", path: `${AGENTIC_OS}/agents/intelligence/signals?agentId=agent_1`, json: { items: [] } },
+      { method: "POST", path: `${AGENTIC_OS}/agents/runs/run_1/approvals/appr_1/approve`, json: { status: "APPROVED" } },
+      { method: "GET", path: `${AGENTIC_OS}/agents/usage?agentId=agent_1`, json: { totalRuns: 1 } },
     ]);
     const zaby = new Zaby({ apiKey: "zaby_pk_test", transport });
 
@@ -177,14 +179,14 @@ describe("server SDK", () => {
     await zaby.usage.getAgentUsage({ agentId: "agent_1" });
 
     expect(transport.requests.map((request) => request.path)).toEqual([
-      "/api/v1/tenant/knowledge-bases",
-      "/api/v1/tenant/knowledge-library/documents/text",
-      "/api/v1/tenant/knowledge-library/documents?limit=10",
-      "/api/v1/tenant/mcp/installations/inst_1/tools/search/preflight",
-      "/api/v1/tenant/agents/memory-retrievals",
-      "/api/v1/tenant/agents/intelligence/signals?agentId=agent_1",
-      "/api/v1/tenant/agents/runs/run_1/approvals/appr_1/approve",
-      "/api/v1/tenant/agents/usage?agentId=agent_1",
+      `${AGENTIC_OS}/knowledge-bases`,
+      `${AGENTIC_OS}/knowledge-library/documents/text`,
+      `${AGENTIC_OS}/knowledge-library/documents?limit=10`,
+      `${AGENTIC_OS}/mcp/installations/inst_1/tools/search/preflight`,
+      `${AGENTIC_OS}/agents/memory-retrievals`,
+      `${AGENTIC_OS}/agents/intelligence/signals?agentId=agent_1`,
+      `${AGENTIC_OS}/agents/runs/run_1/approvals/appr_1/approve`,
+      `${AGENTIC_OS}/agents/usage?agentId=agent_1`,
     ]);
   });
 
@@ -192,7 +194,7 @@ describe("server SDK", () => {
     const transport = new MockTransport([
       {
         method: "GET",
-        path: "/api/v1/tenant/agents/usage",
+        path: `${AGENTIC_OS}/agents/usage`,
         status: 429,
         headers: { "x-request-id": "req_123", "retry-after": "4" },
         json: { message: "Too many requests", code: "RATE_LIMITED" },

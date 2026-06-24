@@ -16,10 +16,10 @@ if (health.status !== "ok") {
 console.log("health ok");
 
 if (!process.env.ZABY_API_KEY) {
-  console.log("ZABY_API_KEY not set; skipping authenticated Agentic OS smoke.");
+  console.log("ZABY_API_KEY not set; skipping authenticated provisioning smoke.");
   process.exit(0);
 }
 
-const usage = await zaby.usage.getAgentUsage();
-console.log("authenticated Agentic OS usage smoke ok");
-console.log(JSON.stringify(usage, null, 2));
+const externalApps = await zaby.externalApps.list({ status: "ACTIVE" });
+console.log("authenticated provisioning smoke ok");
+console.log(JSON.stringify(externalApps, null, 2));

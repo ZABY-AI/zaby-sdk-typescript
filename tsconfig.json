@@ -16,5 +16,6 @@
     "noUncheckedIndexedAccess": true,
     "exactOptionalPropertyTypes": true
   },
-  "include": ["src", "test", "scripts", "vitest.config.ts", "eslint.config.js"]
+  "include": ["src", "scripts", "examples", "vitest.config.ts", "eslint.config.js"],
+  "exclude": ["test"]
 }

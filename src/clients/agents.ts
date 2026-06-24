@@ -10,7 +10,8 @@ import type {
 } from "../types/public";
 import { encodePath } from "../util";
 
-const AGENTS = "/api/v1/tenant/agents";
+const AGENTS = "/api/v1/provisioning/agentic-os/agents";
+const PROVISIONING = "/api/v1/provisioning";
 
 export class AgentsClient {
   constructor(private readonly core: ZabyCoreClient) {}
@@ -71,7 +72,7 @@ export class DeploymentsClient {
   }
 
   getProvisioning(deploymentId: string, options?: RequestOptions) {
-    return this.core.request("GET", `${AGENTS}/deployments/${encodePath(deploymentId)}/provisioning`, options);
+    return this.core.request("GET", `${PROVISIONING}/managed-agents/deployments/${encodePath(deploymentId)}/provisioning`, options);
   }
 }
 
@@ -79,33 +80,31 @@ export class ExternalAppsClient {
   constructor(private readonly core: ZabyCoreClient) {}
 
   list(query?: Record<string, unknown>, options?: RequestOptions) {
-    return this.core.request("GET", `${AGENTS}/external-apps`, {
+    return this.core.request("GET", `${PROVISIONING}/managed-agents/external-apps`, {
       query: query as Record<string, string | number | boolean | null | undefined>,
       ...options,
     });
   }
 
   create(input: unknown, options?: RequestOptions) {
-    return this.core.request("POST", `${AGENTS}/external-apps`, { json: input, ...options });
+    return this.core.request("POST", `${PROVISIONING}/managed-agents/external-apps`, { json: input, ...options });
   }
 
   get(externalAppId: string, options?: RequestOptions) {
-    return this.core.request("GET", `${AGENTS}/external-apps/${encodePath(externalAppId)}`, options);
+    return this.core.request("GET", `${PROVISIONING}/managed-agents/external-apps/${encodePath(externalAppId)}`, options);
   }
 
   update(externalAppId: string, input: unknown, options?: RequestOptions) {
-    return this.core.request("PATCH", `${AGENTS}/external-apps/${encodePath(externalAppId)}`, { json: input, ...options });
+    return this.core.request("PATCH", `${PROVISIONING}/managed-agents/external-apps/${encodePath(externalAppId)}`, { json: input, ...options });
   }
 
   bindDeployment(externalAppId: string, input: unknown, options?: RequestOptions) {
-    return this.core.request("POST", `${AGENTS}/external-apps/${encodePath(externalAppId)}/deployments`, {
+    return this.core.request("POST", `${PROVISIONING}/managed-agents/external-apps/${encodePath(externalAppId)}/deployments`, {
       json: input,
       ...options,
     });
   }
 }
-
-const PROVISIONING = "/api/v1/provisioning";
 
 export class RuntimeTokensClient {
   constructor(private readonly core: ZabyCoreClient) {}
@@ -156,7 +155,7 @@ export class RuntimeTokenFamiliesClient {
   constructor(private readonly core: ZabyCoreClient) {}
 
   list(options?: RequestOptions) {
-    return this.core.request("GET", `${AGENTS}/runtime-token-families`, options);
+    return this.core.request("GET", `${PROVISIONING}/managed-agents/runtime-token-families`, options);
   }
 
   revoke(familyId: string, options?: RequestOptions) {
@@ -167,20 +166,37 @@ export class RuntimeTokenFamiliesClient {
 export class RuntimeTokenPoliciesClient {
   constructor(private readonly core: ZabyCoreClient) {}
 
-  list(options?: RequestOptions) {
-    return this.core.request("GET", `${AGENTS}/runtime-token-policies`, options);
+  list(query?: Record<string, unknown>, options?: RequestOptions) {
+    return this.core.request("GET", `${PROVISIONING}/managed-agents/runtime-token-policies`, {
+      query: query as Record<string, string | number | boolean | null | undefined>,
+      ...options,
+    });
+  }
+
+  create(input: unknown, options?: RequestOptions) {
+    return this.core.request("POST", `${PROVISIONING}/managed-agents/runtime-token-policies`, { json: input, ...options });
   }
 
   get(policyId: string, options?: RequestOptions) {
-    return this.core.request("GET", `${AGENTS}/runtime-token-policies/${encodePath(policyId)}`, options);
+    return this.core.request("GET", `${PROVISIONING}/managed-agents/runtime-token-policies/${encodePath(policyId)}`, options);
+  }
+
+  update(policyId: string, input: unknown, options?: RequestOptions) {
+    return this.core.request("PATCH", `${PROVISIONING}/managed-agents/runtime-token-policies/${encodePath(policyId)}`, {
+      json: input,
+      ...options,
+    });
   }
 }
 
 export class RuntimeTokenGrantsClient {
   constructor(private readonly core: ZabyCoreClient) {}
 
-  revoke(grantId: string, options?: RequestOptions) {
-    return this.core.request("POST", `${AGENTS}/runtime-token-grants/${encodePath(grantId)}/revoke`, options);
+  revoke(grantId: string, input: unknown, options?: RequestOptions) {
+    return this.core.request("POST", `${PROVISIONING}/managed-agents/runtime-token-grants/${encodePath(grantId)}/revoke`, {
+      json: input,
+      ...options,
+    });
   }
 }
 
@@ -188,7 +204,7 @@ export class RuntimeTokenUsageClient {
   constructor(private readonly core: ZabyCoreClient) {}
 
   get(query?: Record<string, unknown>, options?: RequestOptions) {
-    return this.core.request("GET", `${AGENTS}/runtime-token-usage`, {
+    return this.core.request("GET", `${PROVISIONING}/managed-agents/runtime-token-usage`, {
       query: query as Record<string, string | number | boolean | null | undefined>,
       ...options,
     });

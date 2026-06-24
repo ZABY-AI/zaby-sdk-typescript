@@ -2,7 +2,7 @@ import type { ZabyCoreClient } from "../transport";
 import type { RequestOptions } from "../types/public";
 import { encodePath } from "../util";
 
-const MCP = "/api/v1/tenant/mcp";
+const MCP = "/api/v1/provisioning/agentic-os/mcp";
 
 export class McpClient {
   constructor(private readonly core: ZabyCoreClient) {}
