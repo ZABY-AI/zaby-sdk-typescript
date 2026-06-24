@@ -7,6 +7,10 @@ import {
   DeploymentsClient,
   ExternalAppsClient,
   RuntimeTokensClient,
+  RuntimeTokenFamiliesClient,
+  RuntimeTokenPoliciesClient,
+  RuntimeTokenGrantsClient,
+  RuntimeTokenUsageClient,
   ApprovalsClient,
   UsageClient,
 } from "../src/clients/agents";
@@ -95,6 +99,12 @@ describe("AgentsClient — all methods", () => {
     const tr = events(); const c = new AgentsClient(createCore(tr));
     await c.listRunEvents("r1", { page: 1 }); expect(tr.requests[0].path).toContain("page=1");
   });
+
+  it("playgroundRuntimeTokens", async () => {
+    const tr = mockTransport([R("GET", `/api/v1/tenant/agents/a1/playground/runtime-tokens`)]);
+    const c = new AgentsClient(createCore(tr));
+    await c.playgroundRuntimeTokens("a1"); expect(tr.requests[0].method).toBe("GET");
+  });
 });
 
 describe("DeploymentsClient — all methods", () => {
@@ -157,6 +167,50 @@ describe("RuntimeTokensClient — all methods", () => {
     const c = new RuntimeTokensClient(createCore(tr));
     await c.recordFeedback("r1", { rating: 5 });
     expect(tr.requests[0].method).toBe("POST");
+  });
+});
+
+describe("RuntimeTokenFamiliesClient — all methods", () => {
+  it("list", async () => {
+    const tr = mockTransport([R("GET", `/api/v1/tenant/agents/runtime-token-families`)]);
+    const c = new RuntimeTokenFamiliesClient(createCore(tr));
+    await c.list(); expect(tr.requests[0].method).toBe("GET");
+  });
+
+  it("revoke", async () => {
+    const tr = mockTransport([R("POST", `/api/v1/provisioning/managed-agents/runtime-token-families/f1/revoke`)]);
+    const c = new RuntimeTokenFamiliesClient(createCore(tr));
+    await c.revoke("f1"); expect(tr.requests[0].method).toBe("POST");
+  });
+});
+
+describe("RuntimeTokenPoliciesClient — all methods", () => {
+  it("list", async () => {
+    const tr = mockTransport([R("GET", `/api/v1/tenant/agents/runtime-token-policies`)]);
+    const c = new RuntimeTokenPoliciesClient(createCore(tr));
+    await c.list(); expect(tr.requests[0].method).toBe("GET");
+  });
+
+  it("get", async () => {
+    const tr = mockTransport([R("GET", `/api/v1/tenant/agents/runtime-token-policies/p1`)]);
+    const c = new RuntimeTokenPoliciesClient(createCore(tr));
+    await c.get("p1"); expect(tr.requests[0].method).toBe("GET");
+  });
+});
+
+describe("RuntimeTokenGrantsClient", () => {
+  it("revoke", async () => {
+    const tr = mockTransport([R("POST", `/api/v1/tenant/agents/runtime-token-grants/g1/revoke`)]);
+    const c = new RuntimeTokenGrantsClient(createCore(tr));
+    await c.revoke("g1"); expect(tr.requests[0].method).toBe("POST");
+  });
+});
+
+describe("RuntimeTokenUsageClient", () => {
+  it("get", async () => {
+    const tr = mockTransport([R("GET", `/api/v1/tenant/agents/runtime-token-usage`)]);
+    const c = new RuntimeTokenUsageClient(createCore(tr));
+    await c.get({ agentId: "a1" }); expect(tr.requests[0].method).toBe("GET");
   });
 });
 

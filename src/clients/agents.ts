@@ -39,6 +39,10 @@ export class AgentsClient {
     return this.core.request("POST", `${AGENTS}/${encodePath(agentId)}/runs`, { json: input, ...options });
   }
 
+  playgroundRuntimeTokens(agentId: string, options?: RequestOptions) {
+    return this.core.request("GET", `${AGENTS}/${encodePath(agentId)}/playground/runtime-tokens`, options);
+  }
+
   getRunProgress(runId: string, options?: RequestOptions) {
     return this.core.request("GET", `${AGENTS}/runs/${encodePath(runId)}/progress`, options);
   }
@@ -93,20 +97,65 @@ export class ExternalAppsClient {
   }
 }
 
+const PROVISIONING = "/api/v1/provisioning";
+
 export class RuntimeTokensClient {
   constructor(private readonly core: ZabyCoreClient) {}
 
   create<T = RuntimeTokenResponse>(input: { externalAppId: string } & Record<string, unknown>, options?: RequestOptions) {
     const { externalAppId, ...body } = input;
-    return this.core.request<T>("POST", `/api/v1/provisioning/managed-agents/external-apps/${encodePath(externalAppId)}/runtime-tokens`, {
+    return this.core.request<T>("POST", `${PROVISIONING}/managed-agents/external-apps/${encodePath(externalAppId)}/runtime-tokens`, {
       json: body,
       ...options,
     });
   }
 
   recordFeedback(runId: string, input: unknown, options?: RequestOptions) {
-    return this.core.request("POST", `/api/v1/provisioning/managed-agents/runs/${encodePath(runId)}/feedback`, {
+    return this.core.request("POST", `${PROVISIONING}/managed-agents/runs/${encodePath(runId)}/feedback`, {
       json: input,
+      ...options,
+    });
+  }
+}
+
+export class RuntimeTokenFamiliesClient {
+  constructor(private readonly core: ZabyCoreClient) {}
+
+  list(options?: RequestOptions) {
+    return this.core.request("GET", `${AGENTS}/runtime-token-families`, options);
+  }
+
+  revoke(familyId: string, options?: RequestOptions) {
+    return this.core.request("POST", `${PROVISIONING}/managed-agents/runtime-token-families/${encodePath(familyId)}/revoke`, options);
+  }
+}
+
+export class RuntimeTokenPoliciesClient {
+  constructor(private readonly core: ZabyCoreClient) {}
+
+  list(options?: RequestOptions) {
+    return this.core.request("GET", `${AGENTS}/runtime-token-policies`, options);
+  }
+
+  get(policyId: string, options?: RequestOptions) {
+    return this.core.request("GET", `${AGENTS}/runtime-token-policies/${encodePath(policyId)}`, options);
+  }
+}
+
+export class RuntimeTokenGrantsClient {
+  constructor(private readonly core: ZabyCoreClient) {}
+
+  revoke(grantId: string, options?: RequestOptions) {
+    return this.core.request("POST", `${AGENTS}/runtime-token-grants/${encodePath(grantId)}/revoke`, options);
+  }
+}
+
+export class RuntimeTokenUsageClient {
+  constructor(private readonly core: ZabyCoreClient) {}
+
+  get(query?: Record<string, unknown>, options?: RequestOptions) {
+    return this.core.request("GET", `${AGENTS}/runtime-token-usage`, {
+      query: query as Record<string, string | number | boolean | null | undefined>,
       ...options,
     });
   }
