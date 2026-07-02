@@ -1,6 +1,6 @@
 import type { ZabyCoreClient } from "../transport";
 import type { RequestOptions } from "../types/public";
-import { encodePath } from "../util";
+import { encodePath, normalizeTextDocumentBody } from "../util";
 
 const AGENTIC_OS = "/api/v1/provisioning/agentic-os";
 const KBS = `${AGENTIC_OS}/knowledge-bases`;
@@ -14,11 +14,17 @@ export class KnowledgeBasesClient {
   }
 
   uploadTextDocument(knowledgeBaseId: string, input: unknown, options?: RequestOptions) {
-    return this.core.request("POST", `${KBS}/${encodePath(knowledgeBaseId)}/documents/text`, { json: input, ...options });
+    return this.core.request("POST", `${KBS}/${encodePath(knowledgeBaseId)}/documents/text`, {
+      json: normalizeTextDocumentBody(input),
+      ...options,
+    });
   }
 
   createLibraryTextDocument(input: unknown, options?: RequestOptions) {
-    return this.core.request("POST", `${KNOWLEDGE_LIBRARY}/documents/text`, { json: input, ...options });
+    return this.core.request("POST", `${KNOWLEDGE_LIBRARY}/documents/text`, {
+      json: normalizeTextDocumentBody(input),
+      ...options,
+    });
   }
 
   listLibraryDocuments(query?: Record<string, unknown>, options?: RequestOptions) {

@@ -17,6 +17,11 @@ describe("util — encodePath", () => {
   it("encodes unicode characters", () => {
     expect(encodePath("héllo")).toBe("h%C3%A9llo");
   });
+
+  it("preserves Python safe chars and encodes tilde", () => {
+    expect(encodePath("!'()*")).toBe("!'()*");
+    expect(encodePath("a~b")).toBe("a%7Eb");
+  });
 });
 
 describe("util — appendQuery", () => {

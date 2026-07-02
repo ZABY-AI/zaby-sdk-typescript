@@ -3,10 +3,13 @@ import {
   DEFAULT_ZABY_API_ORIGIN,
   Zaby,
   ZabyRuntime,
+  ZabyStreamError,
   configureZaby,
   resetZabyConfigForTests,
 } from "../src";
+import type { ZabyTransport } from "../src/transport";
 import { MockTransport } from "../src/testing";
+import { normalizeTextDocumentBody } from "../src/util";
 
 afterEach(() => {
   resetZabyConfigForTests();
@@ -249,6 +252,60 @@ describe("runtime SDK", () => {
     ]);
   });
 
+  it("stops streaming at RunFinished event field", async () => {
+    const stream = [
+      'data: {"event":"text","content":"hello"}\n\n',
+      'event: RunFinished\ndata: {"reason":"completed"}\n\n',
+      'data: {"event":"text","content":"should not appear"}\n\n',
+    ].join("");
+    const transport = new MockTransport([
+      { method: "GET", path: "/api/v1/agent-runtime/runs/r1/aiui", body: stream },
+    ]);
+    const runtime = new ZabyRuntime({ token: "runtime_token", transport });
+
+    const events = [];
+    for await (const event of runtime.runs.stream("r1")) {
+      events.push(event);
+    }
+
+    expect(events).toHaveLength(2);
+    expect(events[0]).toEqual({ data: { event: "text", content: "hello" } });
+    expect(events[1]).toEqual({ event: "RunFinished", data: { reason: "completed" } });
+  });
+
+  it("wraps mid-stream failures as ZabyStreamError", async () => {
+    class FailingStreamTransport implements ZabyTransport {
+      readonly requests = [] as import("../src/transport").TransportRequest[];
+      async send(request: import("../src/transport").TransportRequest) {
+        this.requests.push(request);
+        let yielded = false;
+        const bodyStream = new ReadableStream<Uint8Array>({
+          pull(controller) {
+            if (!yielded) {
+              yielded = true;
+              controller.enqueue(new TextEncoder().encode('data: {"ok":true}\n\n'));
+              return;
+            }
+            controller.error(new Error("Connection reset"));
+          },
+        });
+        return { status: 200, headers: {}, bodyStream };
+      }
+    }
+
+    const transport = new FailingStreamTransport();
+    const runtime = new ZabyRuntime({ token: "runtime_token", transport });
+    const events = [];
+
+    await expect(async () => {
+      for await (const event of runtime.runs.stream("r1")) {
+        events.push(event);
+      }
+    }).rejects.toMatchObject({ name: "ZabyStreamError", message: "Connection reset" });
+
+    expect(events).toHaveLength(1);
+  });
+
   it("maps expired and exhausted disposable token failures to runtime-specific errors", async () => {
     const transport = new MockTransport([
       {
@@ -288,5 +345,32 @@ describe("runtime SDK", () => {
 
     expect(tokenProvider).toHaveBeenCalledOnce();
     expect(transport.requests[0]?.headers.authorization).toBe("Bearer fresh_runtime_token");
+  });
+});
+
+describe("knowledge base text document normalization", () => {
+  const KBS = "/api/v1/provisioning/agentic-os/knowledge-bases";
+  const LIB = "/api/v1/provisioning/agentic-os/knowledge-library/documents/text";
+
+  it("maps text→content and name→title for uploadTextDocument", async () => {
+    const transport = new MockTransport([
+      { method: "POST", path: `${KBS}/kb1/documents/text`, json: {} },
+    ]);
+    const zaby = new Zaby({ apiKey: "zaby_pk_test", transport });
+    await zaby.knowledgeBases.uploadTextDocument("kb1", { text: "hello world", name: "Doc" });
+    expect(transport.requests[0]?.json).toEqual({ content: "hello world", title: "Doc" });
+  });
+
+  it("auto-fills title from content when missing", async () => {
+    const transport = new MockTransport([
+      { method: "POST", path: LIB, json: {} },
+    ]);
+    const zaby = new Zaby({ apiKey: "zaby_pk_test", transport });
+    await zaby.knowledgeBases.createLibraryTextDocument({ content: "short" });
+    expect(transport.requests[0]?.json).toEqual({ content: "short", title: "short" });
+  });
+
+  it("normalizeTextDocumentBody uses Untitled for empty content", () => {
+    expect(normalizeTextDocumentBody({ content: "" })).toEqual({ content: "", title: "Untitled" });
   });
 });

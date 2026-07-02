@@ -1,3 +1,4 @@
+import { ZabyStreamError } from "../errors";
 import type { ZabyCoreClient } from "../transport";
 import type { RequestOptions } from "../types/public";
 import { parseSseResponse } from "../sse";
@@ -22,9 +23,15 @@ export class RuntimeRunsClient {
       stream: true,
       ...options,
     });
-    for await (const event of parseSseResponse(response)) {
-      yield event;
-      if (isRunFinishedEvent(event)) break;
+    try {
+      for await (const event of parseSseResponse(response)) {
+        yield event;
+        if (isRunFinishedEvent(event)) break;
+      }
+    } catch (error) {
+      if (error instanceof ZabyStreamError) throw error;
+      const message = error instanceof Error ? error.message : String(error);
+      throw new ZabyStreamError({ status: 0, message });
     }
   }
 }

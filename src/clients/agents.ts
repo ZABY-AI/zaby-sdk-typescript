@@ -154,8 +154,11 @@ export class RuntimeTokensClient {
 export class RuntimeTokenFamiliesClient {
   constructor(private readonly core: ZabyCoreClient) {}
 
-  list(options?: RequestOptions) {
-    return this.core.request("GET", `${PROVISIONING}/managed-agents/runtime-token-families`, options);
+  list(query?: Record<string, unknown>, options?: RequestOptions) {
+    return this.core.request("GET", `${PROVISIONING}/managed-agents/runtime-token-families`, {
+      query: query as Record<string, string | number | boolean | null | undefined>,
+      ...options,
+    });
   }
 
   revoke(familyId: string, options?: RequestOptions) {
@@ -192,9 +195,9 @@ export class RuntimeTokenPoliciesClient {
 export class RuntimeTokenGrantsClient {
   constructor(private readonly core: ZabyCoreClient) {}
 
-  revoke(grantId: string, input: unknown, options?: RequestOptions) {
+  revoke(grantId: string, input?: unknown, options?: RequestOptions) {
     return this.core.request("POST", `${PROVISIONING}/managed-agents/runtime-token-grants/${encodePath(grantId)}/revoke`, {
-      json: input,
+      json: input ?? {},
       ...options,
     });
   }

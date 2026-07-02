@@ -104,6 +104,6 @@ class HealthClient {
 }
 
 async function resolveProvider(provider: ZabyAccessTokenProvider | ZabyApiKeyProvider | ZabyRuntimeTokenProvider) {
-  if (typeof provider === "function") return provider();
-  return provider;
+  const result = typeof provider === "function" ? provider() : provider;
+  return String(result instanceof Promise ? await result : result);
 }

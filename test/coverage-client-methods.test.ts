@@ -168,6 +168,31 @@ describe("RuntimeTokensClient — all methods", () => {
     await c.recordFeedback("r1", { rating: 5 });
     expect(tr.requests[0].method).toBe("POST");
   });
+
+  it("rotate", async () => {
+    const tr = mockTransport([R("POST", `/api/v1/provisioning/managed-agents/runtime-tokens/rotate`)]);
+    const c = new RuntimeTokensClient(createCore(tr));
+    await c.rotate({ previousToken: "tok_123" });
+    expect(tr.requests[0].method).toBe("POST");
+    expect(tr.requests[0].json).toEqual({ previousToken: "tok_123" });
+  });
+
+  it("rotateByUniqueId", async () => {
+    const tr = mockTransport([R("POST", `/api/v1/provisioning/managed-agents/external-apps/app1/runtime-tokens/rotate`)]);
+    const c = new RuntimeTokensClient(createCore(tr));
+    await c.rotateByUniqueId({ externalAppId: "app1", deploymentId: "dep1", uniqueId: "uid_1" });
+    expect(tr.requests[0].path).toContain("/runtime-tokens/rotate");
+    expect(tr.requests[0].json).not.toHaveProperty("externalAppId");
+    expect(tr.requests[0].json.deploymentId).toBe("dep1");
+  });
+
+  it("revokeFamily", async () => {
+    const tr = mockTransport([R("POST", `/api/v1/provisioning/managed-agents/runtime-token-families/fam1/revoke`)]);
+    const c = new RuntimeTokensClient(createCore(tr));
+    await c.revokeFamily("fam1", { reason: "test" });
+    expect(tr.requests[0].method).toBe("POST");
+    expect(tr.requests[0].json.reason).toBe("test");
+  });
 });
 
 describe("RuntimeTokenFamiliesClient — all methods", () => {
@@ -175,6 +200,13 @@ describe("RuntimeTokenFamiliesClient — all methods", () => {
     const tr = mockTransport([R("GET", `/api/v1/provisioning/managed-agents/runtime-token-families`)]);
     const c = new RuntimeTokenFamiliesClient(createCore(tr));
     await c.list(); expect(tr.requests[0].method).toBe("GET");
+  });
+
+  it("list with query", async () => {
+    const tr = mockTransport([R("GET", `/api/v1/provisioning/managed-agents/runtime-token-families?agentId=a1`)]);
+    const c = new RuntimeTokenFamiliesClient(createCore(tr));
+    await c.list({ agentId: "a1" });
+    expect(tr.requests[0].url).toContain("agentId=a1");
   });
 
   it("revoke", async () => {
@@ -215,6 +247,14 @@ describe("RuntimeTokenGrantsClient", () => {
     const tr = mockTransport([R("POST", `/api/v1/provisioning/managed-agents/runtime-token-grants/g1/revoke`)]);
     const c = new RuntimeTokenGrantsClient(createCore(tr));
     await c.revoke("g1", { reason: "test" }); expect(tr.requests[0].method).toBe("POST");
+  });
+
+  it("revoke without body", async () => {
+    const tr = mockTransport([R("POST", `/api/v1/provisioning/managed-agents/runtime-token-grants/g1/revoke`)]);
+    const c = new RuntimeTokenGrantsClient(createCore(tr));
+    await c.revoke("g1");
+    expect(tr.requests[0].method).toBe("POST");
+    expect(tr.requests[0].json).toEqual({});
   });
 });
 

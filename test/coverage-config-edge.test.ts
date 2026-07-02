@@ -66,7 +66,7 @@ describe("resolveZabyConfig edge cases", () => {
 
   it("calls backoffMs default function (config.ts:89 coverage)", () => {
     const config = resolveZabyConfig({ retries: {}, fetch: globalThis.fetch });
-    expect(config.retries.attempts).toBe(2);
+    expect(config.retries.attempts).toBe(0);
     expect(config.retries.backoffMs).toBeTypeOf("function");
     const result = config.retries.backoffMs!(0);
     expect(result).toBe(100);

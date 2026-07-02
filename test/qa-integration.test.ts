@@ -83,6 +83,21 @@ describe("config→transport pipeline", () => {
     await new ZabyRuntime({ token: "rt_jwt", transport: t }).runs.start({ input: {} });
     expect(t.requests[0].headers.authorization).toBe("Bearer rt_jwt");
   });
+  it("async apiKey provider resolves before request", async () => {
+    const t = transport([R("GET", "/health", 200, { status: "ok" })]);
+    await new Zaby({ apiKey: async () => "pk_async", transport: t }).health.check();
+    expect(t.requests[0].headers["x-zaby-api-key"]).toBe("pk_async");
+  });
+  it("async accessToken provider resolves before request", async () => {
+    const t = transport([R("GET", "/health", 200, { status: "ok" })]);
+    await new Zaby({ apiKey: "pk", accessToken: async () => "at_async", transport: t }).health.check();
+    expect(t.requests[0].headers.authorization).toBe("Bearer at_async");
+  });
+  it("async runtime token provider resolves before request", async () => {
+    const t = transport([R("POST", "/api/v1/agent-runtime/runs", 200, { runId: "r1" })]);
+    await new ZabyRuntime({ token: async () => "rt_async", transport: t }).runs.start({ input: {} });
+    expect(t.requests[0].headers.authorization).toBe("Bearer rt_async");
+  });
   it("global configureZaby sets apiOrigin", async () => {
     configureZaby({ apiOrigin: "https://custom.io" });
     const t = transport([R("GET", "/health", 200, { status: "ok" })]);

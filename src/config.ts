@@ -83,7 +83,7 @@ function normalizeRetryPolicy(value: ZabyGlobalConfig["retries"]): RetryPolicy {
     };
   }
   return {
-    attempts: value?.attempts ?? 2,
+    attempts: value?.attempts ?? 0,
     retryMethods: value?.retryMethods ?? ["GET", "HEAD", "OPTIONS"],
     retryStatuses: value?.retryStatuses ?? [408, 429, 500, 502, 503, 504],
     backoffMs: value?.backoffMs ?? ((attempt) => Math.min(100 * 2 ** attempt, 1_000)),
