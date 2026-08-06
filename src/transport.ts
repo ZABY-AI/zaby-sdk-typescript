@@ -70,6 +70,8 @@ export type CoreRequestOptions = {
   requestId?: string;
   signal?: AbortSignal;
   stream?: boolean;
+  headers?: Record<string, string>;
+  skipAuthHeader?: boolean;
 };
 
 export class ZabyCoreClient {
@@ -85,11 +87,17 @@ export class ZabyCoreClient {
     return response.json as T;
   }
 
+  async apiKey(): Promise<string> {
+    const headers = await this.authHeaders();
+    return headers["x-zaby-api-key"] ?? "";
+  }
+
   async raw(method: HttpMethod, path: string, options: CoreRequestOptions = {}) {
     const pathWithQuery = appendQuery(path, options.query);
     const headers: Record<string, string> = {
       accept: "application/json",
-      ...await this.authHeaders(),
+      ...(options.skipAuthHeader ? {} : await this.authHeaders()),
+      ...options.headers,
     };
     if (options.json !== undefined) headers["content-type"] = "application/json";
     if (options.requestId) headers["x-request-id"] = options.requestId;

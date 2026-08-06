@@ -12,4 +12,9 @@ export {
 } from "./errors";
 export { Zaby, ZabyRuntime } from "./zaby";
 export type { ZabyClientOptions, ZabyRuntimeOptions } from "./zaby";
+export {
+  TenantAgentsClient,
+  ExecutableAgentsClient,
+  ScoutAgentsClient,
+} from "./clients/tenant-agents";
 export type * from "./types/public";

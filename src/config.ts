@@ -19,12 +19,14 @@ export type ZabyGlobalConfig = {
   retries?: number | RetryPolicy;
   fetch?: FetchLike;
   userAgent?: string;
+  tenantId?: string;
 };
 
 export type ResolvedZabyConfig = Required<Pick<ZabyGlobalConfig, "environment" | "apiOrigin" | "timeoutMs">> & {
   retries: RetryPolicy;
   fetch: FetchLike;
   userAgent?: string;
+  tenantId?: string;
 };
 
 let globalConfig: ZabyGlobalConfig = {};
@@ -58,6 +60,7 @@ export function resolveZabyConfig(overrides: ZabyGlobalConfig = {}): ResolvedZab
     retries: normalizeRetryPolicy(merged.retries),
     fetch: fetchImpl,
     ...(merged.userAgent ? { userAgent: merged.userAgent } : {}),
+    ...(merged.tenantId ? { tenantId: merged.tenantId } : {}),
   };
 }
 

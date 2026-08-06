@@ -18,10 +18,12 @@ import { KnowledgeBasesClient } from "./clients/knowledge-bases";
 import { McpClient } from "./clients/mcp";
 import { MemoryClient } from "./clients/memory";
 import { RuntimeApprovalsClient, RuntimeFeedbackClient, RuntimeRunsClient } from "./clients/runtime";
+import { TenantAgentsClient, ExecutableAgentsClient, ScoutAgentsClient } from "./clients/tenant-agents";
 
 export type ZabyClientOptions = {
   apiKey: ZabyApiKeyProvider;
   accessToken?: ZabyAccessTokenProvider;
+  tenantId?: string;
   transport?: ZabyTransport;
   config?: ZabyGlobalConfig;
 };
@@ -48,6 +50,9 @@ export class Zaby {
   readonly intelligence: IntelligenceClient;
   readonly approvals: ApprovalsClient;
   readonly usage: UsageClient;
+  readonly tenantAgents: TenantAgentsClient;
+  readonly executableAgents: ExecutableAgentsClient;
+  readonly scoutAgents: ScoutAgentsClient;
 
   constructor(options: ZabyClientOptions) {
     const config = resolveZabyConfig(options.config);
@@ -57,6 +62,9 @@ export class Zaby {
       };
       if (options.accessToken) {
         headers.authorization = `Bearer ${await resolveProvider(options.accessToken)}`;
+      }
+      if (options.tenantId) {
+        headers["x-tenant-id"] = options.tenantId;
       }
       return headers;
     }, options.transport);
@@ -76,6 +84,9 @@ export class Zaby {
     this.intelligence = new IntelligenceClient(core);
     this.approvals = new ApprovalsClient(core);
     this.usage = new UsageClient(core);
+    this.tenantAgents = new TenantAgentsClient(core);
+    this.executableAgents = new ExecutableAgentsClient(core);
+    this.scoutAgents = new ScoutAgentsClient(core);
   }
 }
 
