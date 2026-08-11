@@ -4,6 +4,10 @@ import { encodePath } from "../util";
 
 const TENANT_AGENTS = "/api/v1/tenant/agents";
 
+/**
+ * Tenant JWT control-plane for managed agents.
+ * Prefer `zaby.agents` (API-key provisioning) for external/SDK integrations.
+ */
 export class TenantAgentsClient {
   constructor(private readonly core: ZabyCoreClient) {}
 
@@ -98,10 +102,6 @@ export class TenantAgentsClient {
     return this.core.request("POST", `${TENANT_AGENTS}/${encodePath(agentId)}/skills`, { json: input, ...options });
   }
 
-  attachConnectedApp(agentId: string, input: unknown, options?: RequestOptions) {
-    return this.core.request("POST", `${TENANT_AGENTS}/${encodePath(agentId)}/connected-apps`, { json: input, ...options });
-  }
-
   listExternalApps(query?: Record<string, unknown>, options?: RequestOptions) {
     return this.core.request("GET", `${TENANT_AGENTS}/external-apps`, {
       query: query as Record<string, string | number | boolean | null | undefined>,
@@ -111,113 +111,5 @@ export class TenantAgentsClient {
 
   mintPlaygroundRuntimeToken(agentId: string, input: unknown, options?: RequestOptions) {
     return this.core.request("POST", `${TENANT_AGENTS}/${encodePath(agentId)}/playground/runtime-tokens`, { json: input, ...options });
-  }
-}
-
-export class ExecutableAgentsClient {
-  constructor(private readonly core: ZabyCoreClient) {}
-
-  list(query?: Record<string, unknown>, options?: RequestOptions) {
-    return this.core.request("GET", "/api/v1/tenant/executable-agents", {
-      query: query as Record<string, string | number | boolean | null | undefined>,
-      ...options,
-    });
-  }
-
-  get(agentId: string, options?: RequestOptions) {
-    return this.core.request("GET", `/api/v1/tenant/executable-agents/${encodePath(agentId)}`, options);
-  }
-
-  create(input: unknown, options?: RequestOptions) {
-    return this.core.request("POST", "/api/v1/tenant/executable-agents", { json: input, ...options });
-  }
-
-  activate(agentId: string, input: unknown, options?: RequestOptions) {
-    return this.core.request("POST", `/api/v1/tenant/executable-agents/${encodePath(agentId)}/activate`, { json: input, ...options });
-  }
-
-  disable(agentId: string, options?: RequestOptions) {
-    return this.core.request("POST", `/api/v1/tenant/executable-agents/${encodePath(agentId)}/disable`, options);
-  }
-
-  listRuns(agentId: string, query?: Record<string, unknown>, options?: RequestOptions) {
-    return this.core.request("GET", `/api/v1/tenant/executable-agents/${encodePath(agentId)}/runs`, {
-      query: query as Record<string, string | number | boolean | null | undefined>,
-      ...options,
-    });
-  }
-
-  listSteps(agentId: string, runId: string, options?: RequestOptions) {
-    return this.core.request("GET", `/api/v1/tenant/executable-agents/${encodePath(agentId)}/runs/${encodePath(runId)}/steps`, options);
-  }
-
-  usage(agentId: string, options?: RequestOptions) {
-    return this.core.request("GET", `/api/v1/tenant/executable-agents/${encodePath(agentId)}/usage`, options);
-  }
-
-  async run(agentId: string, input: unknown, options?: RequestOptions) {
-    return this.core.request("POST", `/api/v1/executable-agents/${encodePath(agentId)}/runs`, {
-      json: input,
-      headers: {
-        "x-zaby-api-key": await this.core.apiKey(),
-        "idempotency-key": crypto.randomUUID(),
-        accept: "application/json",
-      },
-      skipAuthHeader: true,
-      ...options,
-    });
-  }
-}
-
-export class ScoutAgentsClient {
-  constructor(private readonly core: ZabyCoreClient) {}
-
-  list(query?: Record<string, unknown>, options?: RequestOptions) {
-    return this.core.request("GET", "/api/v1/tenant/scout-agents", {
-      query: query as Record<string, string | number | boolean | null | undefined>,
-      ...options,
-    });
-  }
-
-  get(agentId: string, options?: RequestOptions) {
-    return this.core.request("GET", `/api/v1/tenant/scout-agents/${encodePath(agentId)}`, options);
-  }
-
-  create(input: unknown, options?: RequestOptions) {
-    return this.core.request("POST", "/api/v1/tenant/scout-agents", { json: input, ...options });
-  }
-
-  activate(agentId: string, input: unknown, options?: RequestOptions) {
-    return this.core.request("POST", `/api/v1/tenant/scout-agents/${encodePath(agentId)}/activate`, { json: input, ...options });
-  }
-
-  disable(agentId: string, options?: RequestOptions) {
-    return this.core.request("POST", `/api/v1/tenant/scout-agents/${encodePath(agentId)}/disable`, options);
-  }
-
-  listRuns(agentId: string, query?: Record<string, unknown>, options?: RequestOptions) {
-    return this.core.request("GET", `/api/v1/tenant/scout-agents/${encodePath(agentId)}/runs`, {
-      query: query as Record<string, string | number | boolean | null | undefined>,
-      ...options,
-    });
-  }
-
-  listSteps(agentId: string, runId: string, options?: RequestOptions) {
-    return this.core.request("GET", `/api/v1/tenant/scout-agents/${encodePath(agentId)}/runs/${encodePath(runId)}/steps`, options);
-  }
-
-  usage(agentId: string, options?: RequestOptions) {
-    return this.core.request("GET", `/api/v1/tenant/scout-agents/${encodePath(agentId)}/usage`, options);
-  }
-
-  run(agentId: string, input: unknown, options?: RequestOptions) {
-    return this.core.request("POST", `/api/v1/tenant/scout-agents/${encodePath(agentId)}/runs`, {
-      json: input,
-      headers: {
-        "idempotency-key": crypto.randomUUID(),
-        accept: "application/json",
-      },
-      ...options,
-    });
   }
 }

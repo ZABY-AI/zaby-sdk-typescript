@@ -9,13 +9,14 @@ import {
   resolveTerminalChatConfig,
   type ChatMessage,
   type TerminalChatConfig,
+  type TerminalChatEnv,
 } from "./terminal-chat-core";
 
 type ChatStatus = "booting" | "ready" | "minting token" | "starting run" | "streaming" | "approval required" | "error";
 
 function TerminalAgenticChat() {
   const app = useApp();
-  const config = useMemo(() => resolveTerminalChatConfig(process.env), []);
+  const config = useMemo(() => resolveTerminalChatConfig(process.env as TerminalChatEnv), []);
   const [runtime, setRuntime] = useState<ZabyRuntime | null>(null);
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([

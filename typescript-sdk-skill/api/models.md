@@ -63,13 +63,14 @@ Yielded by `runs.stream(runId)`. `event` is the AG-UI event name (e.g. `"TextMes
 
 ## Run start input
 ```ts
-runtime.runs.start({ input: { message: string; /* + attachments, threadId, context, ... */ } });
-// returns { runId: string, ... }
+// Platform accepts opaque JSON in `input` (string or object both work in practice).
+runtime.runs.start({ input: "Help me onboard", requestId?: string, respondAsync?: boolean });
+// or: { input: { message: "Help me onboard" }, ... }
+// returns { runId: string, agentSessionId?, ... }
 ```
 
-## Agent kinds & communication style
+## Communication style (optional hint)
 ```ts
-type TenantAgentKind = "DEPLOYABLE" | "EXECUTABLE" | "INTERNAL";
 type CommunicationStyleLevel = "LOW" | "BALANCED" | "HIGH";
 type CommunicationStyle = {
   warmth: CommunicationStyleLevel;
@@ -80,34 +81,7 @@ type CommunicationStyle = {
   humor: CommunicationStyleLevel;
 };
 ```
-Set on agent create/update:
-```ts
-zaby.tenantAgents.create({
-  name: "Support Bot",
-  kind: "DEPLOYABLE",
-  communicationStyle: { warmth: "HIGH", humor: "HIGH", directness: "LOW" },
-  instructions: "…",
-});
-```
-Verified behavior: warmth/formality/responseLength/humor change output; enthusiasm/directness currently do not (platform bug).
-
-## Inline activation (EXECUTABLE / INTERNAL)
-```ts
-type InlineActivateInput = {
-  versionId: string;
-  limits: InlineRunLimits;            // see below
-  bypassRules?: unknown[];            // AUTO_APPROVE rules per capability
-  observabilityMode: "METADATA_ONLY" | "REDACTED_CONTENT";
-};
-type InlineRunLimits = {
-  maxInputTokens?: number;            // default 32_768
-  maxOutputTokens?: number;           // default 4_096
-  timeoutMs?: number;                 // default 60_000
-  maxConcurrentRuns?: number;         // default 10
-  maxCostMicros?: number;             // default 1_000_000
-};
-```
-Used by `zaby.executableAgents.activate(agentId, input)` and `zaby.scoutAgents.activate(agentId, input)`.
+May be passed inside agent `config` / metadata when the platform accepts it. Prefer documented create fields: `slug`, `name`, `instructions`, `category`, `visibility`, `defaultModel`, `config`, `metadata`, `tags`.
 
 ## Provider types
 ```ts

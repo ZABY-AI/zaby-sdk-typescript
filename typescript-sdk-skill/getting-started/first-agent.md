@@ -20,22 +20,33 @@ await zaby.externalApps.bindDeployment(String(app.id), {
   allowBrowserRuntime: true,
 });
 
-// 3. Create + deploy an agent
+// 3. Create + publish + deploy an agent (or reuse an existing deployment id)
 const agent = await zaby.agents.create({
   name: "Support Agent",
   slug: "support-agent",
-  // ...agent definition
+  instructions: "You are a helpful support agent.",
+  category: "SUPPORT",
+  visibility: "PRIVATE",
 });
-await zaby.agents.deploy(String(agent.id), { /* deployment config */ });
+const published = await zaby.agents.publish(String(agent.id));
+const deployment = await zaby.agents.deploy(String(agent.id), {
+  agentVersionId: String(published.id ?? published.agentVersionId),
+  environment: "TEST",
+});
 
-// 4. Attach MCP tools / knowledge bases
-await zaby.agents.attachMcpTool(String(agent.id), { installationId: "..." });
-await zaby.agents.attachKnowledgeBase(String(agent.id), { knowledgeBaseId: "..." });
+// 4. Attach MCP tools / knowledge bases (optional)
+await zaby.agents.attachMcpTool(String(agent.id), {
+  tenantInstallationId: "...",
+  toolDefinitionId: "...",
+});
+await zaby.agents.attachKnowledgeBase(String(agent.id), {
+  knowledgeBaseId: "...",
+});
 
-// 5. Mint a runtime token for a user
+// 5. Mint a runtime token for a user (uniqueId or externalUserId required)
 const token = await zaby.runtimeTokens.create({
   externalAppId: String(app.id),
-  deploymentId: process.env.ZABY_AGENT_DEPLOYMENT_ID!,
+  deploymentId: String(deployment.id ?? process.env.ZABY_AGENT_DEPLOYMENT_ID!),
   externalUserId: "user-123",
   ttlSeconds: 600,
   maxUses: 50,
@@ -43,38 +54,16 @@ const token = await zaby.runtimeTokens.create({
 ```
 
 ## Agent operations
-- `agents.create(input)` — create (provisioning)
-- `tenantAgents.create(input)` — create with `kind` (`DEPLOYABLE`/`EXECUTABLE`/`INTERNAL`) and `communicationStyle`
-- `tenantAgents.list(query)` / `tenantAgents.get(agentId)` — tenant-facing inventory
-- `agents.attachMcpTool(agentId, input)` — attach an MCP tool installation
-- `agents.attachKnowledgeBase(agentId, input)`
-- `agents.attachSkill(agentId, input)`
-- `agents.publish(agentId)` / `tenantAgents.publish(agentId)`
-- `agents.deploy(agentId, input)` — creates a deployment
-- `agents.testRun(agentId, input)` — dry run
-- `agents.startRun(agentId, input)` — start a run directly against an agent
-- `tenantAgents.testRun(agentId, { deploymentId, input })` — tenant test run
-- `tenantAgents.listRuns(agentId)` / `listRunEvents(runId)` — run history
-- `executableAgents.activate(agentId, { versionId, limits, observabilityMode })` — activate EXECUTABLE runtime
-- `scoutAgents.activate(agentId, { versionId, limits, observabilityMode })` — activate INTERNAL (Scout) runtime
-- `agents.playgroundRuntimeTokens(agentId)` — playground tokens
-- `agents.getRunProgress(runId)`, `agents.listRunEvents(runId, query)` — observe runs
-
-### Communication style on create
-```ts
-await zaby.tenantAgents.create({
-  name: "Friendly Support",
-  kind: "DEPLOYABLE",
-  communicationStyle: {
-    warmth: "HIGH", formality: "LOW", enthusiasm: "HIGH",
-    directness: "LOW", humor: "HIGH", responseLength: "BALANCED",
-  },
-  instructions: "You are a friendly support agent.",
-});
-```
+- `agents.create(input)` — provisioning create (`slug`, `name`, `instructions?`, `category?`, …)
+- `tenantAgents.*` — same lifecycle under `/api/v1/tenant/agents` (needs tenant JWT)
+- `agents.attachMcpTool` / `attachKnowledgeBase` / `attachSkill`
+- `agents.publish` / `agents.deploy` / `deployments.getProvisioning`
+- `agents.testRun` / `agents.startRun`
+- `agents.playgroundRuntimeTokens(agentId, input)` — **POST** with mint body
+- `agents.getRunProgress` / `listRunEvents`
 
 ## Deployments
 - `deployments.create(agentId, input)` (alias of `agents.deploy`)
-- `deployments.getProvisioning(deploymentId)` — fetch deployment provisioning config
+- `deployments.getProvisioning(deploymentId)`
 
-> The exact shape of `agent` create/deploy input is server-defined; the SDK types these as `unknown` intentionally. See the Zaby console / API reference for the current agent schema.
+> Most create/deploy bodies are typed `unknown` and forwarded as camelCase JSON. Prefer the OpenAPI docs at the gateway when unsure.

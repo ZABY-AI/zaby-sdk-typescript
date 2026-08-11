@@ -9,7 +9,7 @@
 | **Runtime token** | A short-lived, bounded (TTL + maxUses) token minted for a user/session to call the runtime. Minted via `runtimeTokens.create`. Never the tenant API key. |
 | **Runtime token family** | A grouping of tokens (for rotation/revocation) via `tokenFamilyId`. |
 | **Quota policy** | Limits/quotas attached to a runtime token (`runtimeTokenPolicies`). |
-| **MCP server / installation** | An MCP server definition (`mcp.createServer`) and its tenant installation (`mcp.installServer`). Tools are discovered per installation. |
+| **MCP server / installation** | An MCP server definition (`mcp.createServer`) and its tenant installation (`mcp.installServer({ serverDefinitionId })`). Tools are **discovered per server** (`discoverTools(serverId)`), then listed per installation. |
 | **Credential binding** | Binds an MCP installation to stored credentials (`mcp.createCredentialBinding`) — required for tools that need auth (e.g. AWS MCP). |
 | **Auth policy** | Per-installation auth rules (`mcp.upsertAuthPolicy`), e.g. `riskOverride`, `requiresApproval`. |
 | **Knowledge base** | A retrieved-context source attached to an agent (`knowledgeBases.*`, `agents.attachKnowledgeBase`). |
@@ -20,7 +20,7 @@
 | **SSE** | Server-Sent Events — the transport for run streaming. |
 
 ## Clients on `Zaby`
-`health`, `agents`, `deployments`, `externalApps`, `runtimeTokens`, `runtimeTokenFamilies`, `runtimeTokenPolicies`, `runtimeTokenGrants`, `runtimeTokenUsage`, `knowledgeBases`, `mcp`, `memory`, `intelligence`, `approvals`, `usage`.
+`health`, `agents`, `tenantAgents`, `deployments`, `externalApps`, `runtimeTokens`, `runtimeTokenFamilies`, `runtimeTokenPolicies`, `runtimeTokenGrants`, `runtimeTokenUsage`, `knowledgeBases`, `mcp`, `memory`, `intelligence`, `approvals`, `usage`.
 
 ## Clients on `ZabyRuntime`
 `runs`, `approvals`, `feedback`.

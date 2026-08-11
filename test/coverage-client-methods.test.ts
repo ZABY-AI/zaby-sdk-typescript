@@ -101,9 +101,10 @@ describe("AgentsClient — all methods", () => {
   });
 
   it("playgroundRuntimeTokens", async () => {
-    const tr = mockTransport([R("GET", `/api/v1/provisioning/agentic-os/agents/a1/playground/runtime-tokens`)]);
+    const tr = mockTransport([R("POST", `/api/v1/provisioning/agentic-os/agents/a1/playground/runtime-tokens`)]);
     const c = new AgentsClient(createCore(tr));
-    await c.playgroundRuntimeTokens("a1"); expect(tr.requests[0].method).toBe("GET");
+    await c.playgroundRuntimeTokens("a1", { deploymentId: "d1", externalUserId: "u1" });
+    expect(tr.requests[0].method).toBe("POST");
   });
 });
 

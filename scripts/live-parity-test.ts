@@ -12,7 +12,8 @@ const results: StepResult[] = [];
 async function step(name: string, fn: () => Promise<string | void>): Promise<void> {
   try {
     const detail = await fn();
-    results.push({ name, status: "pass", detail: detail ?? undefined });
+    if (detail) results.push({ name, status: "pass", detail });
+    else results.push({ name, status: "pass" });
     console.log(`PASS  ${name}${detail ? ` — ${detail}` : ""}`);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);

@@ -140,7 +140,7 @@ describe("Zaby — all client URL routing", () => {
     const zaby = new Zaby({ apiKey: "test", transport });
     await zaby.mcp.listCatalog();
     await zaby.mcp.createServer({ name: "s1" });
-    await zaby.mcp.installServer({ serverId: "s1" });
+    await zaby.mcp.installServer({ serverDefinitionId: "s1" });
     expect(transport.requests[0]?.path).toBe("/api/v1/provisioning/agentic-os/mcp/catalog");
     expect(transport.requests[1]?.path).toBe("/api/v1/provisioning/agentic-os/mcp/servers");
     expect(transport.requests[2]?.path).toBe("/api/v1/provisioning/agentic-os/mcp/installations");

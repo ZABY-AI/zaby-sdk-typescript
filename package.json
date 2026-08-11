@@ -1,7 +1,7 @@
 {
   "name": "@zaby-ai/sdk",
-  "version": "0.2.0",
-  "description": "TypeScript SDK for the Zaby Agentic OS.",
+  "version": "0.2.2",
+  "description": "External agent + runtime SDK for Zaby (managed agents, tokens, SSE runs). Not a full backend/dashboard client.",
   "type": "module",
   "license": "MIT",
   "repository": {

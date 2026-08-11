@@ -28,7 +28,7 @@ const e2eNamePrefix = "SDK Local E2E";
 const results: StepResult[] = [];
 
 loadEnvFile(backendDbEnvPath);
-configureZaby({ apiOrigin, fetch: fetchWithRuntimeOrigin });
+configureZaby({ apiOrigin, fetch: fetchWithRuntimeOrigin as typeof fetch });
 
 const { db } = await importModule<{ db: any }>(resolve(backendRoot, "packages/db/src/index.ts"));
 const { createTenantApiKey } = await importModule<{
@@ -130,7 +130,7 @@ try {
   await runStep("knowledgeBases.listSourceGroups", async () => zaby.knowledgeBases.listSourceGroups(knowledgeBaseId), itemsDetail);
   await runStep("knowledgeBases.retrieve", async () => zaby.knowledgeBases.retrieve(knowledgeBaseId, {
     query: "What does the SDK E2E validate?",
-    limit: 3,
+    topK: 3,
   }), undefined, { optional: true });
 
   await runStep("agents.attachKnowledgeBase", async () => zaby.agents.attachKnowledgeBase(agentId, {

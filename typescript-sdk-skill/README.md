@@ -1,6 +1,11 @@
 # Zaby TypeScript SDK Skill
 
-TypeScript/JavaScript counterpart of `zaby-sdk-skill` (Python). Documents `@zaby-ai/sdk` for configuring, deploying, running, observing, and governing Zaby agentic systems from Node/browser.
+Documents `@zaby-ai/sdk` — the external **agent + runtime** SDK (not a full backend/dashboard client).
+
+## Scope
+- Configure/deploy managed agents, mint runtime tokens, run/stream via AG-UI SSE
+- Agent-facing KB, MCP, memory, intelligence, approvals, usage
+- **Not** Admin/Customer apps, billing/users/org, GPA/BIA/workflows, or other tenant control-plane APIs
 
 ## Contents
 - `SKILL.md` — entry point
@@ -10,8 +15,8 @@ TypeScript/JavaScript counterpart of `zaby-sdk-skill` (Python). Documents `@zaby
 - `workflows/` — `runtime-token.md`, `run-stream.md`, `mcp.md`, `error-handling.md`
 
 ## Packages / entry points
-- `Zaby` — API-key management client.
-- `ZabyRuntime` (from `@zaby-ai/sdk/runtime`) — runtime-token run client.
+- `Zaby` — provisioning / API-key client (agents, apps, tokens, …)
+- `ZabyRuntime` (from `@zaby-ai/sdk/runtime`) — disposable-token run client
 
 ## Source of truth
-`D:\sdk-testing\zaby-sdk-typescript` (v0.1.1).
+`D:\sdk-testing\zaby-sdk-typescript`

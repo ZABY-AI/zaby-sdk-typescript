@@ -1,5 +1,5 @@
 import type { ZabyCoreClient } from "../transport";
-import type { RequestOptions } from "../types/public";
+import type { KnowledgeRetrieveInput, LinkLibraryDocumentInput, RequestOptions } from "../types/public";
 import { encodePath, normalizeTextDocumentBody } from "../util";
 
 const AGENTIC_OS = "/api/v1/provisioning/agentic-os";
@@ -38,7 +38,7 @@ export class KnowledgeBasesClient {
     });
   }
 
-  linkLibraryDocument(knowledgeBaseId: string, input: unknown, options?: RequestOptions) {
+  linkLibraryDocument(knowledgeBaseId: string, input: LinkLibraryDocumentInput, options?: RequestOptions) {
     return this.core.request("POST", `${KBS}/${encodePath(knowledgeBaseId)}/library-documents`, {
       json: input,
       ...options,
@@ -52,7 +52,7 @@ export class KnowledgeBasesClient {
     });
   }
 
-  retrieve(knowledgeBaseId: string, input: unknown, options?: RequestOptions) {
+  retrieve(knowledgeBaseId: string, input: KnowledgeRetrieveInput, options?: RequestOptions) {
     return this.core.request("POST", `${KBS}/${encodePath(knowledgeBaseId)}/retrieve`, { json: input, ...options });
   }
 

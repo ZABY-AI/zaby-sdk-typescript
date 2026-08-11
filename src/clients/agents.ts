@@ -1,5 +1,12 @@
 import type { ZabyCoreClient } from "../transport";
 import type {
+  AttachKnowledgeBaseInput,
+  AttachMcpToolInput,
+  CreateManagedAgentInput,
+  DeployManagedAgentInput,
+  ExternalAppBindDeploymentInput,
+  ExternalAppCreateInput,
+  PlaygroundRuntimeTokenInput,
   RequestOptions,
   RuntimeTokenCreateInput,
   RuntimeTokenResponse,
@@ -7,6 +14,7 @@ import type {
   RuntimeTokenRevokeFamilyResponse,
   RuntimeTokenRotateByUniqueIdInput,
   RuntimeTokenRotateInput,
+  TenantAgentRunInput,
 } from "../types/public";
 import { encodePath } from "../util";
 
@@ -16,15 +24,15 @@ const PROVISIONING = "/api/v1/provisioning";
 export class AgentsClient {
   constructor(private readonly core: ZabyCoreClient) {}
 
-  create(input: unknown, options?: RequestOptions) {
+  create(input: CreateManagedAgentInput, options?: RequestOptions) {
     return this.core.request("POST", AGENTS, { json: input, ...options });
   }
 
-  attachMcpTool(agentId: string, input: unknown, options?: RequestOptions) {
+  attachMcpTool(agentId: string, input: AttachMcpToolInput, options?: RequestOptions) {
     return this.core.request("POST", `${AGENTS}/${encodePath(agentId)}/mcp-tools`, { json: input, ...options });
   }
 
-  attachKnowledgeBase(agentId: string, input: unknown, options?: RequestOptions) {
+  attachKnowledgeBase(agentId: string, input: AttachKnowledgeBaseInput, options?: RequestOptions) {
     return this.core.request("POST", `${AGENTS}/${encodePath(agentId)}/knowledge-bases`, { json: input, ...options });
   }
 
@@ -36,20 +44,23 @@ export class AgentsClient {
     return this.core.request("POST", `${AGENTS}/${encodePath(agentId)}/publish`, options);
   }
 
-  deploy(agentId: string, input: unknown, options?: RequestOptions) {
+  deploy(agentId: string, input: DeployManagedAgentInput, options?: RequestOptions) {
     return this.core.request("POST", `${AGENTS}/${encodePath(agentId)}/deployments`, { json: input, ...options });
   }
 
-  testRun(agentId: string, input: unknown, options?: RequestOptions) {
+  testRun(agentId: string, input: TenantAgentRunInput, options?: RequestOptions) {
     return this.core.request("POST", `${AGENTS}/${encodePath(agentId)}/test-runs`, { json: input, ...options });
   }
 
-  startRun(agentId: string, input: unknown, options?: RequestOptions) {
+  startRun(agentId: string, input: TenantAgentRunInput, options?: RequestOptions) {
     return this.core.request("POST", `${AGENTS}/${encodePath(agentId)}/runs`, { json: input, ...options });
   }
 
-  playgroundRuntimeTokens(agentId: string, options?: RequestOptions) {
-    return this.core.request("GET", `${AGENTS}/${encodePath(agentId)}/playground/runtime-tokens`, options);
+  playgroundRuntimeTokens(agentId: string, input: PlaygroundRuntimeTokenInput, options?: RequestOptions) {
+    return this.core.request<RuntimeTokenResponse>("POST", `${AGENTS}/${encodePath(agentId)}/playground/runtime-tokens`, {
+      json: input,
+      ...options,
+    });
   }
 
   getRunProgress(runId: string, options?: RequestOptions) {
@@ -67,7 +78,7 @@ export class AgentsClient {
 export class DeploymentsClient {
   constructor(private readonly core: ZabyCoreClient) {}
 
-  create(agentId: string, input: unknown, options?: RequestOptions) {
+  create(agentId: string, input: DeployManagedAgentInput, options?: RequestOptions) {
     return this.core.request("POST", `${AGENTS}/${encodePath(agentId)}/deployments`, { json: input, ...options });
   }
 
@@ -86,7 +97,7 @@ export class ExternalAppsClient {
     });
   }
 
-  create(input: unknown, options?: RequestOptions) {
+  create(input: ExternalAppCreateInput, options?: RequestOptions) {
     return this.core.request("POST", `${PROVISIONING}/managed-agents/external-apps`, { json: input, ...options });
   }
 
@@ -94,11 +105,11 @@ export class ExternalAppsClient {
     return this.core.request("GET", `${PROVISIONING}/managed-agents/external-apps/${encodePath(externalAppId)}`, options);
   }
 
-  update(externalAppId: string, input: unknown, options?: RequestOptions) {
+  update(externalAppId: string, input: Partial<ExternalAppCreateInput> & { status?: string }, options?: RequestOptions) {
     return this.core.request("PATCH", `${PROVISIONING}/managed-agents/external-apps/${encodePath(externalAppId)}`, { json: input, ...options });
   }
 
-  bindDeployment(externalAppId: string, input: unknown, options?: RequestOptions) {
+  bindDeployment(externalAppId: string, input: ExternalAppBindDeploymentInput, options?: RequestOptions) {
     return this.core.request("POST", `${PROVISIONING}/managed-agents/external-apps/${encodePath(externalAppId)}/deployments`, {
       json: input,
       ...options,

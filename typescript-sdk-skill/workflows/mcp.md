@@ -1,19 +1,31 @@
 # Workflow: MCP Servers, Tools & Credentials
 
-Wire MCP tools into an agent and bind credentials for auth-requiring tools (e.g. AWS MCP). All via `zaby.mcp` (API key, server-side).
+Wire MCP tools into an agent and bind credentials for auth-requiring tools. All via `zaby.mcp` (API key, server-side).
 
 ## Catalog & install
 ```ts
-const catalog = await zaby.mcp.listCatalog();           // available server templates
-const server = await zaby.mcp.createServer({ /* server def: name, transport, endpointUrl, authMode */ });
-const installation = await zaby.mcp.installServer({ serverDefinitionId: server.id /* or serverId */ });
-await zaby.mcp.discoverTools(installation.id);           // populate tool catalog
-const tools = await zaby.mcp.listInstallationTools(installation.id);
+const catalog = await zaby.mcp.listCatalog();
+const server = await zaby.mcp.createServer({
+  name: "my-mcp",
+  transport: "STREAMABLE_HTTP",
+  endpointUrl: "https://example.com/mcp",
+  authMode: "NONE",
+});
+const serverId = String(server.id);
+await zaby.mcp.discoverTools(serverId); // discover on the **server definition**
+const installation = await zaby.mcp.installServer({
+  serverDefinitionId: serverId,
+  requireToolApproval: false,
+});
+const tools = await zaby.mcp.listInstallationTools(String(installation.id));
 ```
 
 ## Attach to an agent
 ```ts
-await zaby.agents.attachMcpTool(agentId, { installationId: installation.id });
+await zaby.agents.attachMcpTool(agentId, {
+  tenantInstallationId: String(installation.id),
+  toolDefinitionId: String(tools.items?.[0]?.id ?? tools[0]?.id),
+});
 ```
 
 ## Tool policy (risk / approval)
@@ -23,37 +35,28 @@ await zaby.mcp.updateToolPolicy(installationId, toolId, {
   requiresApproval: false,
 });
 ```
-- `riskOverride`: risk level applied to the tool.
-- `requiresApproval`: if `true`, the run emits an interruption/approval event (HITL) before the tool runs.
 
 ## Credential binding (auth-requiring tools)
-Tools like `call_aws`/`run_script` need credentials bound to the installation:
 ```ts
 await zaby.mcp.createCredentialBinding(installationId, {
-  credentialId: "d4cdf8b4-...",   // the credential (e.g. "AWS MCP Headers")
-  scope: "USER",
-  purpose: "runtime",
-  credentialOwnerType: "TENANT_USER",
-  isDefault: true,
+  credentialId: "d4cdf8b4-...",
 });
 ```
-- If a credential-requiring tool fails with `Authentication failed: Unable to verify your user identity`, the installation either has **no credential binding** or the bound credential has **empty/revoked values**. Binding alone isn't enough — the credential must hold valid secrets (set in the Zaby console; the SDK cannot set credential *values*).
-- Delete a binding: `zaby.mcp.deleteCredentialBinding(bindingId)`.
+- Binding alone is not enough — the credential must hold valid secrets (console).
+- Delete: `zaby.mcp.deleteCredentialBinding(bindingId)`.
 
 ## Auth policy & access
 ```ts
-await zaby.mcp.upsertAuthPolicy(installationId, { /* riskOverride, requiresApproval, ... */ });
-await zaby.mcp.grantAccess(installationId, { /* grantee */ });
+await zaby.mcp.upsertAuthPolicy(installationId, { /* ... */ });
+await zaby.mcp.grantAccess(installationId, { /* ... */ });
 ```
 
-## Invoke / preflight (testing a tool)
+## Invoke / preflight
 ```ts
-const preflight = await zaby.mcp.preflightInvocation(installationId, "aws___list_regions", {});
-const result = await zaby.mcp.invokeTool(installationId, "aws___list_regions", {});
+await zaby.mcp.preflightInvocation(installationId, "tool_name", { arguments: {} });
+await zaby.mcp.invokeTool(installationId, "tool_name", { arguments: {} });
 ```
-Use `invokeTool` to test a tool server-side (e.g. confirm `list_regions` works while `call_aws` fails due to missing credentials).
 
 ## Troubleshooting
-- Read-only tools (docs, `list_regions`) often work without credentials; execution tools (`call_aws`, `run_script`) enforce auth.
-- The MCP `authMode: "SHARED"` means one credential is shared across calls; bind it via `createCredentialBinding`.
-- Revoke/clean up: `revokeInstallation(installationId)`, `updateInstallation(installationId, input)`.
+- Discover tools on the **server**, then install with **`serverDefinitionId`**.
+- Revoke/clean up: `revokeInstallation(installationId)`.

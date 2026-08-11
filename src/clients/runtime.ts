@@ -1,6 +1,6 @@
 import { ZabyStreamError } from "../errors";
 import type { ZabyCoreClient } from "../transport";
-import type { RequestOptions } from "../types/public";
+import type { RequestOptions, RuntimeFeedbackInput, RuntimeRunStartInput, RuntimeRunStartResponse, SseEvent } from "../types/public";
 import { parseSseResponse } from "../sse";
 import { encodePath } from "../util";
 
@@ -9,15 +9,15 @@ const RUNTIME = "/api/v1/agent-runtime";
 export class RuntimeRunsClient {
   constructor(private readonly core: ZabyCoreClient) {}
 
-  start(input: unknown, options?: RequestOptions) {
-    return this.core.request("POST", `${RUNTIME}/runs`, { json: input, ...options });
+  start(input: RuntimeRunStartInput, options?: RequestOptions) {
+    return this.core.request<RuntimeRunStartResponse>("POST", `${RUNTIME}/runs`, { json: input, ...options });
   }
 
   events(runId: string, query?: Record<string, unknown>, options?: RequestOptions) {
     return this.core.request("GET", `${RUNTIME}/runs/${encodePath(runId)}/events`, { query: query as any, ...options });
   }
 
-  async *stream(runId: string, query?: Record<string, unknown>, options?: RequestOptions) {
+  async *stream(runId: string, query?: Record<string, unknown>, options?: RequestOptions): AsyncGenerator<SseEvent> {
     const response = await this.core.raw("GET", `${RUNTIME}/runs/${encodePath(runId)}/aiui`, {
       query: query as any,
       stream: true,
@@ -51,7 +51,7 @@ export class RuntimeApprovalsClient {
 export class RuntimeFeedbackClient {
   constructor(private readonly core: ZabyCoreClient) {}
 
-  create(runId: string, input: unknown, options?: RequestOptions) {
+  create(runId: string, input: RuntimeFeedbackInput, options?: RequestOptions) {
     return this.core.request("POST", `${RUNTIME}/runs/${encodePath(runId)}/feedback`, { json: input, ...options });
   }
 }

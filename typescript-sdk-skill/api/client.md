@@ -1,12 +1,14 @@
 # Client API
 
-## `Zaby` (API-key management client)
+This SDK exposes **agent + runtime** surfaces only — not Admin/Customer apps or general tenant modules (billing, users, WhatsApp, …).
+
+## `Zaby` (provisioning / API-key client)
 ```ts
 import { Zaby } from "@zaby-ai/sdk";
 const zaby = new Zaby({
   apiKey: string | (() => string | Promise<string>),
   accessToken?: string | (() => string | Promise<string>),
-  tenantId?: string,                 // sends X-Tenant-ID header (tenant-scoped APIs)
+  tenantId?: string,                 // X-Tenant-ID (also honored from configureZaby({ tenantId }))
   transport?: ZabyTransport,
   config?: ZabyGlobalConfig,
 });
@@ -16,18 +18,16 @@ const zaby = new Zaby({
 | Client | Purpose |
 |--------|---------|
 | `zaby.health` | `check()` → GET `/health` |
-| `zaby.agents` | provisioning agents + runs + approvals |
-| `zaby.tenantAgents` | **tenant agent lifecycle** (list/get/create/update/delete, publish, deploy, test-runs, runs, approvals, attachments) |
-| `zaby.executableAgents` | **executable agents** (list/create/get/activate/disable/runs/steps/usage) |
-| `zaby.scoutAgents` | **scout (INTERNAL) agents** (list/create/get/activate/disable/runs/steps/usage) |
-| `zaby.deployments` | deployments |
-| `zaby.externalApps` | external apps |
-| `zaby.runtimeTokens` | mint/rotate/revoke runtime tokens |
+| `zaby.agents` | **Preferred** — provisioning managed agents |
+| `zaby.tenantAgents` | Managed-agent JWT routes only (`/api/v1/tenant/agents`) — not other `/tenant/*` APIs |
+| `zaby.deployments` | deployments + provisioning metadata |
+| `zaby.externalApps` | external apps + bind deployment |
+| `zaby.runtimeTokens` | mint/rotate/revoke runtime tokens + feedback |
 | `zaby.runtimeTokenFamilies` | list/revoke families |
 | `zaby.runtimeTokenPolicies` | quota policies |
 | `zaby.runtimeTokenGrants` | revoke grants |
 | `zaby.runtimeTokenUsage` | token usage |
-| `zaby.knowledgeBases` | knowledge bases |
+| `zaby.knowledgeBases` | knowledge bases + library |
 | `zaby.mcp` | MCP servers/installations/tools/credentials |
 | `zaby.memory` | memory |
 | `zaby.intelligence` | intelligence/improvement loops |
@@ -50,17 +50,14 @@ const runtime = new ZabyRuntime({
 | `runtime.approvals` | `approve(runId, approvalId)`, `reject(runId, approvalId)` |
 | `runtime.feedback` | `create(runId, input)` |
 
-`runs.stream(runId)` is an **async generator** yielding `SseEvent` and stops automatically at `RunFinished`.
+`runs.stream(runId)` yields `SseEvent` and stops at `RunFinished`.
 
 ## Request options
-All client methods accept an optional `RequestOptions`:
 ```ts
 type RequestOptions = { requestId?: string; signal?: AbortSignal };
 ```
-Use `signal` to abort a request/stream.
 
 ## `configureZaby`
-Global config (see `concepts/configuration.md`):
 ```ts
 configureZaby({ environment, apiOrigin, timeoutMs, retries, fetch, userAgent, tenantId });
 ```

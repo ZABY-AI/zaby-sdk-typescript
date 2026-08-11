@@ -1,22 +1,22 @@
 # Zaby TypeScript SDK
 
-TypeScript SDK for the Zaby Agentic OS.
+External **agent + runtime** SDK for Zaby (`@zaby-ai/sdk`).
 
-The SDK focuses on the APIs needed to configure, deploy, run, observe, and govern agentic systems:
+This package is **not** a full backend or dashboard client. It wraps the managed-agent / Agentic OS surfaces needed to configure agents, mint disposable runtime tokens, and run/stream agents from your app.
 
-- managed agents
-- deployments
-- external apps
-- disposable runtime tokens
-- browser/server runtime runs
-- knowledge bases
-- MCP tools
-- memory
-- intelligence and improvement loops
-- approvals
-- usage
+## Scope
 
-It intentionally does not expose general tenant modules such as billing, users, organization, meetings, support, FAQs, WhatsApp, API-key management, or credential lifecycle management.
+**In scope**
+- Managed agents (provisioning API key path + optional tenant JWT agent routes)
+- Deployments, external apps, disposable runtime tokens
+- Runtime runs + AG-UI SSE streaming
+- Knowledge bases, MCP tools, memory, intelligence, approvals, usage (agent-facing)
+
+**Out of scope** (use the platform dashboard / internal `@zaby/api-client`, not this SDK)
+- Admin / Customer apps
+- Tenant control plane: billing, users, roles, org, branding, WhatsApp, meetings, support, FAQs
+- GPA chat, BIA sessions, workflows, app-studio, file library
+- API-key CRUD, credential vault lifecycle, public marketing APIs
 
 ## Install
 
@@ -36,11 +36,9 @@ configureZaby({
 });
 ```
 
-For private staging or dedicated tenant gateways, pass an explicit API origin through your application config.
+## Provisioning client (`Zaby`)
 
-## Server SDK
-
-Use tenant API keys only from trusted backend code. Agentic OS management APIs in this SDK are API-key driven.
+Use a tenant API key only from trusted server code.
 
 ```ts
 import { Zaby } from "@zaby-ai/sdk";
@@ -71,9 +69,12 @@ const token = await zaby.runtimeTokens.create({
 });
 ```
 
-## Runtime SDK
+Prefer `zaby.agents` / `externalApps` / `runtimeTokens` for integrations.  
+`zaby.tenantAgents` is only the **managed-agent** JWT surface under `/api/v1/tenant/agents` — not the rest of tenant APIs.
 
-Use disposable runtime tokens in browser or untrusted runtime contexts.
+## Runtime client (`ZabyRuntime`)
+
+Use disposable runtime tokens in browser or untrusted contexts.
 
 ```ts
 import { ZabyRuntime } from "@zaby-ai/sdk/runtime";
@@ -81,7 +82,7 @@ import { ZabyRuntime } from "@zaby-ai/sdk/runtime";
 const runtime = new ZabyRuntime({ token: disposableRuntimeToken });
 
 const run = await runtime.runs.start({
-  input: { message: "Help me onboard" },
+  input: "Help me onboard",
 });
 
 for await (const event of runtime.runs.stream(String(run.runId))) {
@@ -89,92 +90,21 @@ for await (const event of runtime.runs.stream(String(run.runId))) {
 }
 ```
 
-## Agentic OS Surfaces
+## Surfaces (agent SDK only)
 
 ```ts
-zaby.agents.create(...)
-zaby.agents.attachKnowledgeBase(...)
-zaby.agents.attachMcpTool(...)
-zaby.agents.publish(...)
-zaby.agents.deploy(...)
-
-zaby.externalApps.create(...)
-zaby.externalApps.bindDeployment(...)
-zaby.runtimeTokens.create(...)
-zaby.runtimeTokens.recordFeedback(...)
-
-zaby.knowledgeBases.create(...)
-zaby.knowledgeBases.uploadTextDocument(...)
-zaby.knowledgeBases.createLibraryTextDocument(...)
-zaby.knowledgeBases.listLibraryDocuments(...)
-zaby.knowledgeBases.linkLibraryDocument(...)
-zaby.knowledgeBases.createSource(...)
-zaby.knowledgeBases.createIngestionPolicy(...)
-zaby.knowledgeBases.listJobs(...)
-
-zaby.mcp.createServer(...)
-zaby.mcp.discoverTools(...)
-zaby.mcp.installServer(...)
-zaby.mcp.preflightInvocation(...)
-zaby.mcp.invokeTool(...)
-
-zaby.memory.retrieve(...)
-zaby.memory.approveCandidate(...)
-zaby.intelligence.listSignals(...)
-zaby.intelligence.approveImprovement(...)
-zaby.approvals.approve(...)
-zaby.usage.getAgentUsage(...)
+zaby.agents.* / zaby.tenantAgents.*   // managed agents
+zaby.externalApps.* / zaby.runtimeTokens.*
+zaby.knowledgeBases.* / zaby.mcp.*
+zaby.memory.* / zaby.intelligence.* / zaby.approvals.* / zaby.usage.*
+runtime.runs.* / runtime.approvals.* / runtime.feedback.*
 ```
 
 ## E2E Smoke
 
-Authenticated smoke tests require a provisioning API key:
-
 ```sh
 ZABY_API_KEY=zaby_pk_... npm run test:e2e
 ```
-
-Optional overrides:
-
-```sh
-ZABY_API_ORIGIN=https://genapi.zaby.io npm run test:e2e
-```
-
-## Terminal Agentic Chat
-
-Run a full terminal chat UI powered by the SDK:
-
-```sh
-npm run example:chat
-```
-
-Use one of these auth modes:
-
-```sh
-ZABY_RUNTIME_TOKEN=<disposable-runtime-token> npm run example:chat
-```
-
-or mint disposable runtime tokens from the server-side SDK:
-
-```sh
-ZABY_API_KEY=zaby_pk_... \
-ZABY_EXTERNAL_APP_ID=<external-app-id> \
-ZABY_AGENT_DEPLOYMENT_ID=<deployment-id> \
-npm run example:chat
-```
-
-Optional:
-
-```sh
-ZABY_API_ORIGIN=https://genapi.zaby.io npm run example:chat
-```
-
-Inside the TUI:
-
-- `/help` shows commands
-- `/clear` clears the transcript
-- `/exit` quits
-- `Esc` quits
 
 ## Development
 
@@ -185,8 +115,7 @@ npm run typecheck
 npm run build
 ```
 
-## Security Boundary
+## Security
 
-`Zaby` is server-side and sends `X-Zaby-Api-Key`.
-
-`ZabyRuntime` is browser-safe and sends only short-lived `Authorization: Bearer <runtime-token>` credentials.
+- `Zaby` → `X-Zaby-Api-Key` (server only)
+- `ZabyRuntime` → `Authorization: Bearer <runtime-token>` (safe for clients)

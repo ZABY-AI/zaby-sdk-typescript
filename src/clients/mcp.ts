@@ -1,5 +1,5 @@
 import type { ZabyCoreClient } from "../transport";
-import type { RequestOptions } from "../types/public";
+import type { McpInstallServerInput, RequestOptions } from "../types/public";
 import { encodePath } from "../util";
 
 const MCP = "/api/v1/provisioning/agentic-os/mcp";
@@ -27,7 +27,7 @@ export class McpClient {
     return this.core.request("POST", `${MCP}/servers/${encodePath(serverId)}/discover-tools`, options);
   }
 
-  installServer(input: unknown, options?: RequestOptions) {
+  installServer(input: McpInstallServerInput, options?: RequestOptions) {
     return this.core.request("POST", `${MCP}/installations`, { json: input, ...options });
   }
 
