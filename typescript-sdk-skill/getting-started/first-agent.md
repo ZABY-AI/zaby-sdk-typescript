@@ -66,4 +66,7 @@ const token = await zaby.runtimeTokens.create({
 - `deployments.create(agentId, input)` (alias of `agents.deploy`)
 - `deployments.getProvisioning(deploymentId)`
 
+## Next: product UI
+Minting the token is not enough for a chat page. Wire `@zaby-ai/aiui-core` + `@zaby-ai/aiui-react` (`workflows/aiui-frontend.md`).
+
 > Most create/deploy bodies are typed `unknown` and forwarded as camelCase JSON. Prefer the OpenAPI docs at the gateway when unsure.

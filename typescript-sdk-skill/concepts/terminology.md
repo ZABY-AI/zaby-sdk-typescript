@@ -16,7 +16,9 @@
 | **Memory** | Conversation/session memory client (`memory.*`). |
 | **Approval** | A human-in-the-loop gate on a run (`approvals.*` / `runtime.approvals.*`). |
 | **Run** | One agent execution (`runs.start` → `runs.stream`). Emits AG-UI events. |
-| **AG-UI event** | A streaming event from a run (`RunStarted`, `TextMessageContent`, `ToolCallStart`, `RunFinished`, …). See the AIUI skill for the full protocol. |
+| **AG-UI / AIUI event** | A streaming event from a run (`RunStarted`, `TEXT_MESSAGE_CONTENT`, `ToolCallStart`, `RunFinished`, …). Protocol lives in `@zaby-ai/aiui-core` (`EventDecoder`). |
+| **Runtime token refresh** | Remint or `runtimeTokens.rotate`. Not a separate refresh-token type. Browser: `createRuntimeTokenManager` in `@zaby-ai/aiui-core`. |
+| **`@zaby-ai/aiui-react`** | React chat (`AbstractAgent`, `useAgentChat`, `Chat`). Required for a product UI. |
 | **SSE** | Server-Sent Events — the transport for run streaming. |
 
 ## Clients on `Zaby`

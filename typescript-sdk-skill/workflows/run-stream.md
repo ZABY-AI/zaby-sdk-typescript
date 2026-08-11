@@ -52,7 +52,11 @@ await runtime.feedback.create(runId, { rating: "positive", comment: "..." });
 ```
 
 ## Connecting to AIUI
-The SSE stream from `runs.stream` is exactly the AG-UI event stream that `@zaby-ai/aiui-react` (`ZabyRuntimeAgent`) renders. On the client, simply pass the runtime `token` to `ZabyRuntimeAgent` — it handles `runs.start`/`runs.stream` for you. See the `aiui-skill`.
+`runs.stream` is the **headless** AG-UI SSE path (`ZabyRuntime`, scripts, tests).
+
+A product React UI must **not** consume this iterator directly. Use `@zaby-ai/aiui-core` (`EventDecoder`, `createRuntimeTokenManager`) + `@zaby-ai/aiui-react` (`AbstractAgent` subclass → `useAgentChat`). The browser POSTs `{runtimeUrl}/run/aiui` with the runtime Bearer token.
+
+There is no `ZabyRuntimeAgent` export. Full wiring: `workflows/aiui-frontend.md`.
 
 ## Aborting
 ```ts

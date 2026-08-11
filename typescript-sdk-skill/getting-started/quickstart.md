@@ -2,6 +2,8 @@
 
 Two halves: **mint a runtime token** (server) and **stream a run** (browser/server).
 
+**Fastest path:** `rapid-prototype.md` — copy-paste a full Next.js chat in 5 minutes.
+
 ## 1. Mint a runtime token (server-side)
 ```ts
 import { Zaby } from "@zaby-ai/sdk";
@@ -36,7 +38,15 @@ for await (const event of runtime.runs.stream(runId)) {
 ```
 
 ## Wire to a chat UI
-Pass `token.token` to the AIUI `ZabyRuntimeAgent` (`@zaby-ai/aiui-react`) as its `runtimeToken` getter. The SSE stream above is the same AG-UI event stream AIUI renders. See the `aiui-skill` for the front-end.
+Do **not** hand `token.token` to a raw `EventSource` or invent a `ZabyRuntimeAgent` import.
+
+Product UI:
+
+1. Keep `@zaby-ai/sdk` on the server (`/api/runtime-token` above).
+2. In the browser, `createRuntimeTokenManager` from `@zaby-ai/aiui-core` remints before TTL / maxUses.
+3. Subclass `AbstractAgent` from `@zaby-ai/aiui-react`, `POST {runtimeUrl}/run/aiui` with `Authorization: Bearer <token>`, decode with `EventDecoder`, pass the agent to `useAgentChat`.
+
+Full copy-paste: `workflows/aiui-frontend.md`.
 
 ## Minimal Next.js token route
 ```ts

@@ -38,7 +38,7 @@ const runtime = new ZabyRuntime({ token: process.env.ZABY_RUNTIME_TOKEN! });
 - `ZabyRuntime` → `{ authorization: "Bearer <token>" }`.
 
 ## Why two?
-The tenant API key is powerful and long-lived — it must stay server-side. The browser only ever holds a disposable runtime token (TTL + maxUses bounded), minted per user/session. This is the same split the AIUI front-end relies on (`ZabyRuntimeAgent` consumes the runtime token).
+The tenant API key is powerful and long-lived — it must stay server-side. The browser only ever holds a disposable runtime token (TTL + maxUses bounded), minted per user/session. The AIUI front-end (`@zaby-ai/aiui-react` `AbstractAgent` + `useAgentChat`) consumes that token via `createRuntimeTokenManager` / `resolveRuntimeToken` from `@zaby-ai/aiui-core`. See `workflows/aiui-frontend.md`.
 
 ## Providers
 All three provider types (`ZabyApiKeyProvider`, `ZabyAccessTokenProvider`, `ZabyRuntimeTokenProvider`) are `string | (() => MaybePromise<string>)`. Use the function form for lazy/rotating secrets.

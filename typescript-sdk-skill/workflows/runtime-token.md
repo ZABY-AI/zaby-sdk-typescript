@@ -23,26 +23,34 @@ const token = await zaby.runtimeTokens.create({
 
 ## Token lifecycle rules
 - `ttlSeconds` = absolute lifetime. `maxUses` = total calls allowed.
+- There is **no** separate OAuth refresh token. Refresh = remint or `rotate` / `rotateByUniqueId`.
 - Mint a fresh token per user/session; never reuse across users.
-- For refresh, either mint a new one, or use `rotate` / `rotateByUniqueId` (by `uniqueId` you control). `rotateAfterSeconds` hints when to rotate.
-- `revokeFamily(tokenFamilyId, { reason })` kills a whole family (logout-all).
+- `rotateAfterSeconds` hints when to rotate. `revokeFamily(tokenFamilyId, { reason })` kills a whole family (logout-all).
 
-## Client-side token provider (recommended)
-Hold the token in a provider function so it refreshes before expiry:
+## Client-side refresh (AIUI — required for a product UI)
+Use `createRuntimeTokenManager` from `@zaby-ai/aiui-core`. It remints when `expiresAt` is within `refreshSkewMs` or `remainingUses` drops below `minRemainingUses`. Pass `tokenManager.provider` into your `AbstractAgent` subclass (`workflows/aiui-frontend.md`).
+
 ```ts
-let cache: { token: string; expiresAt: number } | null = null;
+import { createRuntimeTokenManager } from "@zaby-ai/aiui-core";
 
-async function getRuntimeToken(): Promise<string> {
-  if (cache && cache.expiresAt - Date.now() > 120_000) return cache.token;
-  const res = await fetch("/api/zaby/runtime-token", { method: "POST" });
-  const data = await res.json();
-  cache = { token: data.token, expiresAt: new Date(data.expiresAt).getTime() };
-  return cache.token;
-}
-
-// Pass to ZabyRuntime or AIUI ZabyRuntimeAgent:
-new ZabyRuntime({ token: getRuntimeToken });
+const tokenManager = createRuntimeTokenManager({
+  refreshSkewMs: 30_000,
+  minRemainingUses: 2,
+  mint: async () => {
+    const res = await fetch("/api/runtime-token", { method: "POST", cache: "no-store" });
+    return res.json(); // { token, expiresAt, remainingUses, rotateAfterSeconds }
+  },
+});
 ```
+
+Server rotate (optional, instead of a new mint):
+
+```ts
+const rotated = await zaby.runtimeTokens.rotate({ previousToken });
+```
+
+## Headless / server token provider
+`ZabyRuntime` also accepts `token: string | () => Promise<string>` for scripts and backends. That is **not** a React chat UI.
 
 ## Policy
 Attach a `quotaPolicyId` (from `runtimeTokenPolicies.create`/`.list`) to bound quotas. List/inspect via `runtimeTokenPolicies.*` and `runtimeTokenUsage.get`.

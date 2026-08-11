@@ -51,3 +51,4 @@ Set `timeoutMs` globally (`configureZaby`) or per-client (`config`). Pass `signa
 - Never catch-and-swallow; at minimum log `err.status` + `err.body`.
 - For chat UIs, surface `RunError` and `ZabyStreamError` to the user with a retry affordance.
 - Mint runtime tokens with tight `ttlSeconds`/`maxUses`; rotate/`revokeFamily` on logout.
+- In a React UI, let `createRuntimeTokenManager` remint on 401 expired/exhausted (`workflows/aiui-frontend.md`).
